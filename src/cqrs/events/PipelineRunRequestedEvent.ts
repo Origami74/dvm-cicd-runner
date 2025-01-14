@@ -53,7 +53,7 @@ export class PipelineRunRequestedEventHandler implements IEventHandler<PipelineR
             await this.cloneRepositoryCommandHandler.execute({cloneDir: dir, repoAddress: repoAddress, repoRef: gitRef})
 
             // Execute pipeline build
-            await this.runPipelineCommandHandler.execute({rootDir: dir, pipelineDefinitionFilePath: pipelineDefinitionFilePath})
+            await this.runPipelineCommandHandler.execute({jobRequest: event.nostrEvent, rootDir: dir, pipelineDefinitionFilePath: pipelineDefinitionFilePath})
 
 
             // Write output to result

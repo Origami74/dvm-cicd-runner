@@ -12,6 +12,7 @@
     "npm:@noble/hashes@1.5.0": "1.5.0",
     "npm:@scure/bip32@^1.4.0": "1.5.0",
     "npm:@scure/bip39@^1.3.0": "1.4.0",
+    "npm:@types/qrcode-terminal@0.12.2": "0.12.2",
     "npm:@welshman/lib@^0.0.17": "0.0.17",
     "npm:@welshman/util@^0.0.30": "0.0.30",
     "npm:blossom-client-sdk@^1.1.1": "1.1.1",
@@ -191,6 +192,9 @@
       "dependencies": [
         "undici-types"
       ]
+    },
+    "@types/qrcode-terminal@0.12.2": {
+      "integrity": "sha512-v+RcIEJ+Uhd6ygSQ0u5YYY7ZM+la7GgPbs0V/7l/kFs2uO4S8BcIUEMoP7za4DNIqNnUD5npf0A/7kBhrCKG5Q=="
     },
     "@types/tape@5.6.4": {
       "integrity": "sha512-EmL4fJpZyByNCkupLLcJhneqcnT+rQUG5fWKNCsZyBK1x7nUuDTwwEerc4biEMZgvSK2+FXr775aLeXhKXK4Yw==",

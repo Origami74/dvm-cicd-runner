@@ -5,7 +5,7 @@ import ICommandHandler from '../base/ICommandHandler.ts';
 import {nostrNow} from "../../utils/nostrEventUtils.ts";
 import {RelayProvider} from "../../RelayProvider.ts";
 import type IRelayProvider from "../../IRelayProvider.ts";
-import {NRelay, NSecSigner} from '@nostrify/nostrify';
+import {NRelay, NSecSigner, NostrEvent} from '@nostrify/nostrify';
 import {NOSTR_PRIVATE_KEY} from "../../utils/env.ts";
 
 // As specified n NIP-90 Job feedback status
@@ -18,12 +18,10 @@ export enum JobFeedBackStatus {
 }
 
 export class PublishJobFeedbackCommand implements ICommand {
-    jobRequestId!: string;
+    jobRequest!: NostrEvent;
     status!: JobFeedBackStatus;
     statusExtraInfo?: string;
-    relayHint?: string;
     content?: string;
-    customerPubKey?: string;
 }
 
 @injectable()
@@ -42,19 +40,19 @@ export class PublishJobFeedbackCommandHandler implements ICommandHandler<Publish
         const signer = new NSecSigner(NOSTR_PRIVATE_KEY);
         const signerPubkey = await signer.getPublicKey();
 
-        // var note = {
-        //     kind: 7000,
-        //     pubkey: signerPubkey,
-        //     content: command.content,
-        //     created_at: nostrNow(),
-        //     tags: [
-        //         ["status", command.status.toString(), command.statusExtraInfo],
-        //         ["e", command.jobRequestId, command.relayHint],
-        //         ["p", command.customerPubKey]
-        //     ]
-        // }
-        // const envt = await signer.signEvent(note);
-        //
-        // await this.relay.event(envt)
+        var note = {
+            kind: command.jobRequest.kind + 1000,
+            pubkey: signerPubkey,
+            content: command.content,
+            created_at: nostrNow(),
+            tags: [
+                ["status", command.status.toString(), command.statusExtraInfo],
+                ["e", command.jobRequest.id],
+                ["p", command.jobRequest.pubkey]
+            ]
+        }
+        const envt = await signer.signEvent(note);
+
+        await this.relay.event(envt)
     }
 }
