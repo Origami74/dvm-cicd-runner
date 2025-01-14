@@ -2,6 +2,7 @@ import {inject, injectable} from "tsyringe";
 import type pino from "pino";
 import IRelayProvider from "./IRelayProvider.ts";
 import { NRelay1, NPool } from '@nostrify/nostrify';
+import {NOSTR_RELAYS} from "./utils/env.ts";
 
 @injectable()
 export class RelayProvider implements IRelayProvider {
@@ -14,24 +15,17 @@ export class RelayProvider implements IRelayProvider {
     ) {
         this.logger = logger;
 
-        const relays = [
-            'wss://nos.lol',
-            'wss://relay.damus.io',
-            'wss://relay.primal.net',
-            'wss://relay.stens.dev',
-        ];
-
         this.pool = new NPool({
             open(url) {
-                return new NRelay1(relays[0]);
+                return new NRelay1(url);
             },
             reqRouter: async (filters) => {
-                return new Map(relays.map((relay) => {
+                return new Map(NOSTR_RELAYS.map((relay) => {
                     return [relay, filters];
                 }));
             },
             eventRouter: async event => {
-                return relays;
+                return NOSTR_RELAYS;
             },
         });
     }

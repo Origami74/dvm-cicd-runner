@@ -5,11 +5,10 @@ import IEvent from '../base/IEvent.ts';
 import {NostrEvent} from '@nostrify/nostrify';
 import {getParams, getTag} from "../../utils/nostrEventUtils.ts";
 import { Address } from '@welshman/util';
-import {WatchRepositoryCommand} from "../commands/WatchRepositoryCommand.ts";
 import type ICommandHandler from "../base/ICommandHandler.ts";
 import {CloneRepositoryCommand} from "../commands/CloneRepositoryCommand.ts";
-import {DockerBuildCommand} from "../commands/DockerBuildCommand.ts";
-import {UploadToBlossomCommand} from "../commands/UploadToBlossomCommand.ts";
+import {util} from "npm:protobufjs@7.4.0";
+import encode = util.base64.encode;
 
 export class PipelineRunRequestedEvent implements IEvent {
     nostrEvent!: NostrEvent;
@@ -21,7 +20,6 @@ export class PipelineRunRequestedEventHandler implements IEventHandler<PipelineR
     constructor(
         @inject("Logger") private logger: pino.Logger,
         @inject(CloneRepositoryCommand.name) private cloneRepositoryCommandHandler: ICommandHandler<CloneRepositoryCommand>,
-        @inject(UploadToBlossomCommand.name) private UploadToBlossomCommandHandler: ICommandHandler<UploadToBlossomCommand>,
     ) {
     }
 
@@ -29,21 +27,28 @@ export class PipelineRunRequestedEventHandler implements IEventHandler<PipelineR
         console.log(event.nostrEvent)
         const params = getParams(event.nostrEvent);
 
-        const branchName = params.get("branch_name")
-        const commitHash = params.get("commit_hash")
-        if (commitHash === undefined || branchName === undefined) {
+        const gitAddress = params.get("git_address")
+        const gitRef = params.get("git_ref")
+        const pipeline = params.get("pipeline")
+        if (gitRef === undefined || gitAddress === undefined) {
             console.log("missing parameter commit_hash");
             return;
         }
 
         try {
-            const iTag = getTag(event.nostrEvent, "i");
-            const repoAddress = Address.fromNaddr(iTag[1]);
+            // const iTag = getTag(event.nostrEvent, "i");
+            let repoAddress: string;
 
-            const dir = `tmp/${repoAddress.toNaddr()}-${commitHash}`;
+            if(gitAddress.startsWith("naddr")) {
+                repoAddress = gitAddress
+            } else {
+                repoAddress = gitAddress
+            }
+
+            const dir = `tmp/${btoa(repoAddress)}-${btoa(gitRef)}`;
 
             // Clone commit into tmp folder
-            await this.cloneRepositoryCommandHandler.execute({cloneDir: dir, repoAddress: repoAddress, commitHash: commitHash})
+            await this.cloneRepositoryCommandHandler.execute({cloneDir: dir, repoAddress: repoAddress, repoRef: gitRef})
 
             // Execute pipeline build
 

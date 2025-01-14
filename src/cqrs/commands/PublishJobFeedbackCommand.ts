@@ -6,7 +6,7 @@ import {nostrNow} from "../../utils/nostrEventUtils.ts";
 import {RelayProvider} from "../../RelayProvider.ts";
 import type IRelayProvider from "../../IRelayProvider.ts";
 import {NRelay, NSecSigner} from '@nostrify/nostrify';
-import {PRIVATE_KEY} from "../../utils/env.ts";
+import {NOSTR_PRIVATE_KEY} from "../../utils/env.ts";
 
 // As specified n NIP-90 Job feedback status
 export enum JobFeedBackStatus {
@@ -39,23 +39,22 @@ export class PublishJobFeedbackCommandHandler implements ICommandHandler<Publish
     }
 
     async execute(command: PublishJobFeedbackCommand): Promise<void> {
-        const secretKey: string = PRIVATE_KEY
-        const signer = new NSecSigner(secretKey);
+        const signer = new NSecSigner(NOSTR_PRIVATE_KEY);
         const signerPubkey = await signer.getPublicKey();
 
-        var note = {
-            kind: 7000,
-            pubkey: signerPubkey,
-            content: command.content,
-            created_at: nostrNow(),
-            tags: [
-                ["status", command.status.toString(), command.statusExtraInfo],
-                ["e", command.jobRequestId, command.relayHint],
-                ["p", command.customerPubKey]
-            ]
-        }
-        const envt = await signer.signEvent(note);
-
-        await this.relay.event(envt)
+        // var note = {
+        //     kind: 7000,
+        //     pubkey: signerPubkey,
+        //     content: command.content,
+        //     created_at: nostrNow(),
+        //     tags: [
+        //         ["status", command.status.toString(), command.statusExtraInfo],
+        //         ["e", command.jobRequestId, command.relayHint],
+        //         ["p", command.customerPubKey]
+        //     ]
+        // }
+        // const envt = await signer.signEvent(note);
+        //
+        // await this.relay.event(envt)
     }
 }
