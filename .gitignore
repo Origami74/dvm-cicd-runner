@@ -6,6 +6,8 @@
 .DS_Store
 Thumbs.db
 
+/tmp
+
 # Env
 .env
 .env.*

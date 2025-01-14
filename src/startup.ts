@@ -14,6 +14,7 @@ import {
     PublishJobFeedbackCommandHandler
 } from "./cqrs/commands/PublishJobFeedbackCommand.ts";
 import {PipelineRunRequestedEvent, PipelineRunRequestedEventHandler} from "./cqrs/events/PipelineRunRequestedEvent.ts";
+import {RunPipelineCommand, RunPipelineCommandHandler} from "./cqrs/commands/RunPipelineCommand.ts";
 
 export async function startup() {
     const logger = pino.pino();
@@ -26,6 +27,7 @@ export async function startup() {
     // CQRS registrations
     registerCommandHandler(PublishJobFeedbackCommand.name, PublishJobFeedbackCommandHandler)
     registerCommandHandler(CloneRepositoryCommand.name, CloneRepositoryCommandHandler)
+    registerCommandHandler(RunPipelineCommand.name, RunPipelineCommandHandler)
 
     registerQueryHandler(GetRepoAddressQuery.name, GetRepoAddressQueryHandler)
 

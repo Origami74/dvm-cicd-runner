@@ -9,6 +9,7 @@ import type ICommandHandler from "../base/ICommandHandler.ts";
 import {CloneRepositoryCommand} from "../commands/CloneRepositoryCommand.ts";
 import {util} from "npm:protobufjs@7.4.0";
 import encode = util.base64.encode;
+import {RunPipelineCommand} from "../commands/RunPipelineCommand.ts";
 
 export class PipelineRunRequestedEvent implements IEvent {
     nostrEvent!: NostrEvent;
@@ -20,6 +21,7 @@ export class PipelineRunRequestedEventHandler implements IEventHandler<PipelineR
     constructor(
         @inject("Logger") private logger: pino.Logger,
         @inject(CloneRepositoryCommand.name) private cloneRepositoryCommandHandler: ICommandHandler<CloneRepositoryCommand>,
+        @inject(RunPipelineCommand.name) private runPipelineCommandHandler: ICommandHandler<RunPipelineCommand>,
     ) {
     }
 
@@ -29,7 +31,7 @@ export class PipelineRunRequestedEventHandler implements IEventHandler<PipelineR
 
         const gitAddress = params.get("git_address")
         const gitRef = params.get("git_ref")
-        const pipeline = params.get("pipeline")
+        const pipelineDefinitionFilePath = params.get("pipeline_filepath")
         if (gitRef === undefined || gitAddress === undefined) {
             console.log("missing parameter commit_hash");
             return;
@@ -45,12 +47,13 @@ export class PipelineRunRequestedEventHandler implements IEventHandler<PipelineR
                 repoAddress = gitAddress
             }
 
-            const dir = `tmp/${btoa(repoAddress)}-${btoa(gitRef)}`;
+            const dir = `tmp/${event.nostrEvent.id}`;
 
             // Clone commit into tmp folder
             await this.cloneRepositoryCommandHandler.execute({cloneDir: dir, repoAddress: repoAddress, repoRef: gitRef})
 
             // Execute pipeline build
+            await this.runPipelineCommandHandler.execute({rootDir: dir, pipelineDefinitionFilePath: pipelineDefinitionFilePath})
 
 
             // Write output to result
