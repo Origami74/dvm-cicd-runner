@@ -6,6 +6,7 @@ import type IRelayProvider from "../IRelayProvider.ts";
 import {nostrNow} from "../utils/nostrEventUtils.ts";
 import IEvent from "../cqrs/base/IEvent.ts";
 import IEventHandler from "../cqrs/base/IEventHandler.ts";
+import {NOSTR_PRIVATE_KEY} from "../utils/env.ts";
 
 export interface IEventPublisher {
     publish(kind: number, tags: string[][], content: string): Promise<void>
@@ -29,8 +30,7 @@ export class EventPublisher implements IEventPublisher {
     }
 
     public async publish(kind: number, tags: string[][], content: string): Promise<void> {
-        const secretKey: string = Deno.env.get("NSEC_HEX") || ""; // TODO throw new Error("NSEC_HEX env var not set");
-        const signer = new NSecSigner(secretKey);
+        const signer = new NSecSigner(NOSTR_PRIVATE_KEY);
         const signerPubkey = await signer.getPublicKey();
 
         var note = {

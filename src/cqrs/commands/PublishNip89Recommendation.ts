@@ -24,6 +24,8 @@ export class PublishNip89RecommendationCommandHandler implements ICommandHandler
     }
 
     async execute(command: PublishNip89RecommendationCommand): Promise<void> {
+        this.logger.info("Publising NIP-89 announcement")
+
         const signer = new NSecSigner(NOSTR_PRIVATE_KEY);
         const signerPubkey = await signer.getPublicKey();
 

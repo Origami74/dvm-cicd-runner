@@ -26,14 +26,14 @@ export class PipelineRunRequestedEventHandler implements IEventHandler<PipelineR
     }
 
     async execute(event: PipelineRunRequestedEvent): Promise<void> {
-        console.log(event.nostrEvent)
+        this.logger.info(event.nostrEvent)
         const params = getParams(event.nostrEvent);
 
         const gitAddress = params.get("git_address")
         const gitRef = params.get("git_ref")
         const pipelineDefinitionFilePath = params.get("pipeline_filepath")
         if (gitRef === undefined || gitAddress === undefined) {
-            console.log("missing parameter commit_hash");
+            this.logger.info("missing parameter commit_hash");
             return;
         }
 
@@ -61,7 +61,6 @@ export class PipelineRunRequestedEventHandler implements IEventHandler<PipelineR
 
 
         } catch (e){
-            console.log(e)
             this.logger.error(e, "error when Building")
         }
     }

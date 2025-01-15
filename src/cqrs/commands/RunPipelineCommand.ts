@@ -49,13 +49,14 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
             content: "",
         })
 
+        // https://nektosact.com/usage/index.html#workflows
         let cmd = new Deno.Command("act", { args: [`-W`, fullPath] });
         let { code, stdout, stderr } = await cmd.output();
 
         // stdout & stderr are a Uint8Array
-        console.log(`code: ${code}`);
-        console.log(`out: ${new TextDecoder().decode(stdout)}`)
-        console.log(`err: ${new TextDecoder().decode(stderr)}`);
+        this.logger.info(`code: ${code}`);
+        this.logger.info(`out: ${new TextDecoder().decode(stdout)}`)
+        this.logger.info(`err: ${new TextDecoder().decode(stderr)}`);
 
         await this.publishJobFeedbackCommandHandler.execute({
             status: code == 0 ? JobFeedBackStatus.Success : JobFeedBackStatus.Error,
@@ -63,7 +64,6 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
             statusExtraInfo: "Success",
             content: new TextDecoder().decode(stdout),
         })
-        // console.log(workflows);
 
         // broadcast
         this.logger.info(`File contents: ${file}`)
