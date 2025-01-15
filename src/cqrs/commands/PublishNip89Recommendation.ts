@@ -32,13 +32,14 @@ export class PublishNip89RecommendationCommandHandler implements ICommandHandler
         var note = {
             kind: 31989,
             pubkey: signerPubkey,
-            content: `"name": "${SERVICE_NAME}", "about": "${SERVICE_ABOUT}"`,
+            content: `{"name": "${SERVICE_NAME}", "about": "${SERVICE_ABOUT}"}`,
             created_at: nostrNow(),
             tags: [
                 ["k", "5900"],
                 ["t", "cicd"]
             ]
         }
+
         const envt = await signer.signEvent(note);
 
         await this.relay.event(envt)

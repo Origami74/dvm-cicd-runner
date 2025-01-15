@@ -1,0 +1,13 @@
+.git
+.env
+.env.example
+.vscode
+.gitignore
+Makefile
+README.md
+
+tmp
+*.tar
+.github
+.idea
+Dockerfile
