@@ -11,6 +11,7 @@ import {
     PublishJobFeedbackCommandHandler
 } from "./PublishJobFeedbackCommand.ts";
 import {NostrEvent} from '@nostrify/nostrify';
+import {ACT_DEFAULT_IMAGE, ACT_EXECUTABLE_PATH} from "../../utils/env.ts";
 
 export class RunPipelineCommand implements ICommand {
     jobRequest!: NostrEvent
@@ -50,7 +51,7 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
         })
 
         // https://nektosact.com/usage/index.html#workflows
-        let cmd = new Deno.Command("act", { args: [`-W`, fullPath] });
+        let cmd = new Deno.Command(ACT_EXECUTABLE_PATH, { args: [`-W`, fullPath, "-P", ACT_DEFAULT_IMAGE] });
         let { code, stdout, stderr } = await cmd.output();
 
         // stdout & stderr are a Uint8Array

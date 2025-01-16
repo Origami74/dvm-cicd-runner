@@ -20,6 +20,9 @@ const SERVICE_NAME = requiredEnv("SERVICE_NAME");
 const SERVICE_ABOUT = requiredEnv("SERVICE_ABOUT");
 const SERVICE_PICTURE_URL = requiredEnv("SERVICE_PICTURE_URL");
 
+const ACT_EXECUTABLE_PATH = optionalEnv("ACT_EXECUTABLE_PATH") ?? "act";
+const ACT_DEFAULT_IMAGE = optionalEnv("ACT_DEFAULT_IMAGE") ?? "ubuntu-latest=nektos/act-environments-ubuntu:18.04";
+
 
 // check required env
 if (NOSTR_RELAYS.length === 0) throw new Error("At least one relay is required");
@@ -29,5 +32,7 @@ export {
   NOSTR_RELAYS,
   SERVICE_ABOUT,
   SERVICE_NAME,
-  SERVICE_PICTURE_URL
+  SERVICE_PICTURE_URL,
+  ACT_EXECUTABLE_PATH,
+  ACT_DEFAULT_IMAGE
 };

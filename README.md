@@ -47,3 +47,9 @@ Note: `git_address` is of this very repository
   ]
 }
 ```
+
+## Running using docker
+
+```shell
+docker run -v /var/run/docker.sock:/var/run/docker.sock --privileged --env-file .env dvm-ci-cd-runner
+```

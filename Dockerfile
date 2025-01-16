@@ -1,19 +1,23 @@
 FROM denoland/deno AS install
 
+WORKDIR /app
+
 # Install git
 RUN apt update && \
     apt install -y git libc6 curl build-essential pkg-config libssl-dev
 
-WORKDIR /app
-ADD . /app
-
 # Install nGit
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
-
 RUN cargo install ngit
 
+RUN curl https://google.com
+# Install Act
+RUN curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/nektos/act/master/install.sh | bash
+
 FROM install
+
+ADD . /app
 RUN deno cache main.ts
 
 CMD ["run", "--allow-all", "--unstable-cron", "--env", "main.ts"]
