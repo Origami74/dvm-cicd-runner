@@ -15,6 +15,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          clean: 'true'
+          repository: 'https://github.com/Origami74/dvm-cicd-runner.git'
       - name: Upload to Blossom
         uses: Origami74/upload-blossom-action@main
         with:

@@ -12,6 +12,7 @@ import {
 } from "./PublishJobFeedbackCommand.ts";
 import {NostrEvent} from '@nostrify/nostrify';
 import {ACT_DEFAULT_IMAGE, ACT_EXECUTABLE_PATH} from "../../utils/env.ts";
+import {copy, readerFromStreamReader} from "jsr:@std/io";
 
 export class RunPipelineCommand implements ICommand {
     jobRequest!: NostrEvent
@@ -51,20 +52,25 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
         })
 
         // https://nektosact.com/usage/index.html#workflows
-        let cmd = new Deno.Command(ACT_EXECUTABLE_PATH, { args: [`-W`, fullPath, "-P", ACT_DEFAULT_IMAGE] });
-        let { code, stdout, stderr } = await cmd.output();
+        let cmd = new Deno.Command(
+            ACT_EXECUTABLE_PATH, {
+                args: [`-W`, fullPath, "-P", ACT_DEFAULT_IMAGE],
+                stdout: "piped",
+                stderr: "piped"
+            }).spawn();
 
-        // stdout & stderr are a Uint8Array
-        this.logger.info(`code: ${code}`);
-        this.logger.info(`out: ${new TextDecoder().decode(stdout)}`)
-        this.logger.info(`err: ${new TextDecoder().decode(stderr)}`);
+        copy(readerFromStreamReader(cmd.stdout.getReader()), Deno.stdout);
+        copy(readerFromStreamReader(cmd.stderr.getReader()), Deno.stderr);
+
+        const result = await cmd.status
 
         await this.publishJobFeedbackCommandHandler.execute({
-            status: code == 0 ? JobFeedBackStatus.Success : JobFeedBackStatus.Error,
+            status: result.code == 0 ? JobFeedBackStatus.Success : JobFeedBackStatus.Error,
             jobRequest: command.jobRequest,
             statusExtraInfo: "Success",
-            content: new TextDecoder().decode(stdout),
+            content: "new TextDecoder().decode(stdout)", // TODO get output
         })
+
 
         // broadcast
         this.logger.info(`File contents: ${file}`)
