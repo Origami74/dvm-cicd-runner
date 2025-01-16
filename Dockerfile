@@ -2,7 +2,8 @@ FROM denoland/deno AS install
 
 # Install git
 RUN apt update && \
-    apt install -y git
+    apt install -y git build-essential && \
+    apt install -y musl-dev
 
 WORKDIR /app
 ADD . /app
