@@ -51,10 +51,13 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
             content: "",
         })
 
-        // https://nektosact.com/usage/index.html#workflows
-        const cd = await new Deno.Command(Deno.execPath(), { args: ["cd", command.rootDir] }).output()
 
+        await new Deno.Command(Deno.execPath(), { args: ["cd", command.rootDir] }).output()
+
+        // TODO: might cause issues with multiple runs in parallel
         Deno.chdir(command.rootDir)
+
+        // https://nektosact.com/usage/index.html#workflows
         let cmd = new Deno.Command(
             `act`, {
                 args: [`-W`, command.pipelineDefinitionFilePath, "-P", ACT_DEFAULT_IMAGE],
@@ -63,7 +66,6 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
                 stdin: "piped",
             }).spawn();
 
-        cmd.stdin
 
         copy(readerFromStreamReader(cmd.stdout.getReader()), Deno.stdout);
         copy(readerFromStreamReader(cmd.stderr.getReader()), Deno.stderr);
@@ -74,7 +76,7 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
             status: result.code == 0 ? JobFeedBackStatus.Success : JobFeedBackStatus.Error,
             jobRequest: command.jobRequest,
             statusExtraInfo: "Success",
-            content: "new TextDecoder().decode(stdout)", // TODO get output
+            content: "TODO stream to string output //new TextDecoder().decode(stdout)", // TODO get output
         })
 
 
