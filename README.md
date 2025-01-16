@@ -53,3 +53,17 @@ Note: `git_address` is of this very repository
 ```shell
 docker run -v /var/run/docker.sock:/var/run/docker.sock --privileged --env-file .env dvm-ci-cd-runner
 ```
+
+build & push to vps
+```shell
+docker build . --platform linux/amd64 --tag ngit-test && \
+docker save ngit-test > ngit-test.tar && \
+scp -O ngit-test.tar admin@217.77.8.91:/tmp/ngit-test.tar && \
+scp -O .env admin@x.x.x.x:/tmp/.env 
+
+
+# On remote machine
+cd /tmp && \ 
+docker image load -i ngit-test.tar && \
+docker run -v /var/run/docker.sock:/var/run/docker.sock --privileged --env-file .env ngit-test
+```

@@ -52,12 +52,18 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
         })
 
         // https://nektosact.com/usage/index.html#workflows
+        const cd = await new Deno.Command(Deno.execPath(), { args: ["cd", command.rootDir] }).output()
+
+        Deno.chdir(command.rootDir)
         let cmd = new Deno.Command(
-            ACT_EXECUTABLE_PATH, {
-                args: [`-W`, fullPath, "-P", ACT_DEFAULT_IMAGE],
+            `act`, {
+                args: [`-W`, command.pipelineDefinitionFilePath, "-P", ACT_DEFAULT_IMAGE],
                 stdout: "piped",
-                stderr: "piped"
+                stderr: "piped",
+                stdin: "piped",
             }).spawn();
+
+        cmd.stdin
 
         copy(readerFromStreamReader(cmd.stdout.getReader()), Deno.stdout);
         copy(readerFromStreamReader(cmd.stderr.getReader()), Deno.stderr);

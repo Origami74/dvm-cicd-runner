@@ -14,6 +14,7 @@ RUN cargo install ngit
 RUN curl https://google.com
 # Install Act
 RUN curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/nektos/act/master/install.sh | bash
+ENV PATH="$PATH:/app/bin/"
 
 FROM install
 
