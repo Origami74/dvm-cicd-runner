@@ -16,7 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          repository: 'https://github.com/Origami74/dvm-cicd-runner.git'
+          repository: 'Origami74/dvm-cicd-runner'
           ref: "main"
       - name: Upload to Blossom
         uses: Origami74/upload-blossom-action@main
