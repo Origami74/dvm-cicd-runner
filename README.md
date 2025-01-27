@@ -8,7 +8,7 @@
 
 ## Executing:
 ```shell
-run --env --allow-read --allow-write --allow-net --allow-run --allow-sys --allow-env --unstable-cron
+deno run --env --allow-read --allow-write --allow-net --allow-run --allow-sys --allow-env --unstable-cron
 ```
 
 ## DVM request example:

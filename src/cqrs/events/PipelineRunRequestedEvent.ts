@@ -3,12 +3,9 @@ import {inject, injectable} from "tsyringe";
 import IEventHandler from '../base/IEventHandler.ts';
 import IEvent from '../base/IEvent.ts';
 import {NostrEvent} from '@nostrify/nostrify';
-import {getParams, getTag} from "../../utils/nostrEventUtils.ts";
-import { Address } from '@welshman/util';
+import {getParams} from "../../utils/nostrEventUtils.ts";
 import type ICommandHandler from "../base/ICommandHandler.ts";
 import {CloneRepositoryCommand} from "../commands/CloneRepositoryCommand.ts";
-import {util} from "npm:protobufjs@7.4.0";
-import encode = util.base64.encode;
 import {RunPipelineCommand} from "../commands/RunPipelineCommand.ts";
 
 export class PipelineRunRequestedEvent implements IEvent {
@@ -57,8 +54,6 @@ export class PipelineRunRequestedEventHandler implements IEventHandler<PipelineR
 
 
             // Write output to result
-
-
 
         } catch (e){
             this.logger.error(e, "error when Building")

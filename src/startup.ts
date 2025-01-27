@@ -56,9 +56,9 @@ export async function startup() {
     logger.info("Starting cron services");
 
     const publishNip89: PublishNip89RecommendationCommandHandler = container.resolve(PublishNip89RecommendationCommand.name)
-    await Deno.cron("NIP-89 Announcements", {minute: {every: 1}}, async () => {
-        await publishNip89.execute({})
-    });
+    // await Deno.cron("NIP-89 Announcements", {minute: {every: 1}}, async () => {
+    //     await publishNip89.execute({})
+    // });
 
     logger.info("Startup completed");
 }

@@ -11,7 +11,7 @@ import {
     PublishJobFeedbackCommandHandler
 } from "./PublishJobFeedbackCommand.ts";
 import {NostrEvent} from '@nostrify/nostrify';
-import {ACT_DEFAULT_IMAGE, ACT_EXECUTABLE_PATH} from "../../utils/env.ts";
+import {ACT_DEFAULT_IMAGE} from "../../utils/env.ts";
 import {copy, readerFromStreamReader} from "jsr:@std/io";
 
 export class RunPipelineCommand implements ICommand {
@@ -66,21 +66,52 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
                 stdin: "piped",
             }).spawn();
 
+        const stdoutReader = cmd.stdout.getReader();
+        const stderrReader = cmd.stderr.getReader();
 
-        copy(readerFromStreamReader(cmd.stdout.getReader()), Deno.stdout);
-        copy(readerFromStreamReader(cmd.stderr.getReader()), Deno.stderr);
+        const decoder = new TextDecoder();
 
-        const result = await cmd.status
+        let fullTextOutput = ""
+        stdoutReader.read().then(async function processText({done, value}) {
+            const stream = await stdoutReader.read();
 
-        await this.publishJobFeedbackCommandHandler.execute({
-            status: result.code == 0 ? JobFeedBackStatus.Success : JobFeedBackStatus.Error,
-            jobRequest: command.jobRequest,
-            statusExtraInfo: "Success",
-            content: "TODO stream to string output //new TextDecoder().decode(stdout)", // TODO get output
+            if (done) return;
+
+            fullTextOutput += decoder.decode(value);
+            return await processText(stream);
         })
 
+        stderrReader.read().then(async function processText({done, value}) {
+            const stream = await stdoutReader.read();
 
-        // broadcast
-        this.logger.info(`File contents: ${file}`)
+            if (done) return;
+
+            fullTextOutput += decoder.decode(value);
+            return await processText(stream);
+        })
+
+        copy(readerFromStreamReader(stdoutReader), Deno.stdout);
+        copy(readerFromStreamReader(stderrReader), Deno.stderr);
+
+        let jobStatus: JobFeedBackStatus;
+        let statusExtraInfo = ""
+        try{
+            const result = await cmd.status
+            jobStatus = JobFeedBackStatus.Success
+            statusExtraInfo = result.code == 0 ? "PipelineSuccess" : "PipelineError"
+        } catch (e) {
+            console.error("Error executing pipeline", e);
+            jobStatus = JobFeedBackStatus.Error
+            statusExtraInfo = "Internal error occurred."
+        }
+
+
+        // broadcast result
+        await this.publishJobFeedbackCommandHandler.execute({
+            status: jobStatus,
+            jobRequest: command.jobRequest,
+            statusExtraInfo: statusExtraInfo,
+            content: fullTextOutput,
+        })
     }
 }
