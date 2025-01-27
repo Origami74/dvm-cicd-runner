@@ -15,6 +15,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          repository: 'naddr1qvzqqqrhnypzpwa4mkswz4t8j70s2s6q00wzqv7k7zamxrmj2y4fs88aktcfuf68qy88wumn8ghj7mn0wvhxcmmv9uq32amnwvaz7tmjv4kxz7fwv3sk6atn9e5k7tcpz9mhxue69uhkummnw3ezuamfdejj7qq0v3mx6ttrd93kgttjw4hxuetj4ux9zv'
+          ref: "main"
       - name: Upload to Blossom
         uses: Origami74/upload-blossom-action@main
         with:
