@@ -21,9 +21,12 @@ jobs:
       - run: ls ../../ -la
       - name: Get version
         run: echo "version=$(cat main.ts)"
-      - uses: actions/setup-node@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Check Node.js version
+        run: node -v
       - name: Upload to Blossom
         uses: Origami74/upload-blossom-action@debug-nektos-act
         with:
