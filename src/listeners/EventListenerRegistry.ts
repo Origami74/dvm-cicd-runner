@@ -12,15 +12,13 @@ import { NRelay, NostrFilter } from '@nostrify/nostrify';
 @injectable()
 export class EventListenerRegistry implements IEventListenerRegistry {
 
-    private logger: pino.Logger;
     private listeners: { [id: string] : IEventListener; } = {};
     private _relay: NRelay;
 
     constructor(
-        @inject("Logger") logger: pino.Logger,
+        @inject("Logger") private logger: pino.Logger,
         @inject(RelayProvider) relayProvider: IRelayProvider,
     ) {
-        this.logger = logger;
         this._relay = relayProvider.getDefaultPool();
     }
 

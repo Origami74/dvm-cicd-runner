@@ -58,9 +58,8 @@ build & push to vps
 ```shell
 docker build . --platform linux/amd64 --tag ngit-test && \
 docker save ngit-test > ngit-test.tar && \
-scp -O ngit-test.tar admin@217.77.8.91:/tmp/ngit-test.tar && \
+scp -O ngit-test.tar admin@x.x.x.x:/tmp/ngit-test.tar && \
 scp -O .env admin@x.x.x.x:/tmp/.env 
-
 
 # On remote machine
 cd /tmp && \ 

@@ -5,6 +5,7 @@ import ICommandHandler from '../base/ICommandHandler.ts';
 import { Address } from '@welshman/util';
 import { simpleGit, type SimpleGit } from "simple-git";
 import { exists } from "https://deno.land/std/fs/mod.ts";
+import logger from "../../utils/logger.ts";
 
 export class CloneRepositoryCommand implements ICommand {
     cloneDir!: string;
@@ -18,11 +19,11 @@ export class CloneRepositoryCommandHandler implements ICommandHandler<CloneRepos
     constructor(
         @inject("Logger") private logger: pino.Logger,
     ) {
+        
     }
 
     async execute(command: CloneRepositoryCommand): Promise<void> {
         this.logger.info(`cloning repository ${command.repoAddress} ref ${command.repoRef}`);
-
         let git: SimpleGit = simpleGit();
         let cloneUrl = command.repoAddress;
 

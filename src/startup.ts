@@ -20,6 +20,9 @@ import {
     PublishNip89RecommendationCommand,
     PublishNip89RecommendationCommandHandler
 } from "./cqrs/commands/PublishNip89Recommendation.ts";
+import {Wallet} from "./money/wallet.ts";
+import {CashRegister} from "./money/cashRegister.ts";
+import Payout from "./money/payout.ts";
 
 export async function startup() {
     const stream = pretty({
@@ -49,16 +52,22 @@ export async function startup() {
 
     container.registerSingleton(EventListenerRegistry.name, EventListenerRegistry);
 
+    container.registerSingleton(Wallet.name, Wallet);
+    container.registerSingleton(CashRegister.name, CashRegister);
+    container.registerSingleton(Payout.name, Payout);
+
     logger.info("All services registered");
 
     setupListeners()
 
     logger.info("Starting cron services");
 
+    container.resolve<Payout>(Payout.name).start();
+
     const publishNip89: PublishNip89RecommendationCommandHandler = container.resolve(PublishNip89RecommendationCommand.name)
-    // await Deno.cron("NIP-89 Announcements", {minute: {every: 1}}, async () => {
-    //     await publishNip89.execute({})
-    // });
+    await Deno.cron("NIP-89 Announcements", {minute: {every: 1}}, async () => {
+        await publishNip89.execute({})
+    });
 
     logger.info("Startup completed");
 }

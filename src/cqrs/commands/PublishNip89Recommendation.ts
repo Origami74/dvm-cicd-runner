@@ -6,7 +6,14 @@ import {nostrNow} from "../../utils/nostrEventUtils.ts";
 import {RelayProvider} from "../../RelayProvider.ts";
 import type IRelayProvider from "../../IRelayProvider.ts";
 import {NRelay, NSecSigner} from '@nostrify/nostrify';
-import {NOSTR_PRIVATE_KEY, SERVICE_ABOUT, SERVICE_NAME} from "../../utils/env.ts";
+import {
+    NOSTR_PRIVATE_KEY,
+    SERVICE_ABOUT,
+    SERVICE_NAME, SPEC_RAM, SPEC_RUNNERS,
+    SPEC_STORAGE,
+    SPEC_STORAGE_TYPE,
+    SPEC_VCPU
+} from "../../utils/env.ts";
 
 export class PublishNip89RecommendationCommand implements ICommand {
 }
@@ -29,14 +36,27 @@ export class PublishNip89RecommendationCommandHandler implements ICommandHandler
         const signer = new NSecSigner(NOSTR_PRIVATE_KEY);
         const signerPubkey = await signer.getPublicKey();
 
+        const content = {
+            name: SERVICE_NAME,
+            about: SERVICE_ABOUT,
+            manifest: {
+                version: 1,
+                runners: SPEC_RUNNERS,
+                vcpu: SPEC_VCPU,
+                ram: SPEC_RAM,
+                storage: SPEC_STORAGE,
+                storageType: SPEC_STORAGE_TYPE
+            }
+        }
+
         var note = {
             kind: 31989,
             pubkey: signerPubkey,
-            content: `{"name": "${SERVICE_NAME}", "about": "${SERVICE_ABOUT}"}`,
+            content: JSON.stringify(content),
             created_at: nostrNow(),
             tags: [
                 ["k", "5900"],
-                ["t", "cicd"]
+                ["t", "actions"]
             ]
         }
 

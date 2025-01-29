@@ -11,7 +11,7 @@ import {
     PublishJobFeedbackCommandHandler
 } from "./PublishJobFeedbackCommand.ts";
 import {NostrEvent} from '@nostrify/nostrify';
-import {ACT_DEFAULT_IMAGE} from "../../utils/env.ts";
+import {ACT_DEFAULT_IMAGE, GITHUB_TOKEN} from "../../utils/env.ts";
 import {copy, readerFromStreamReader} from "jsr:@std/io";
 
 export class RunPipelineCommand implements ICommand {
@@ -60,7 +60,10 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
         // https://nektosact.com/usage/index.html#workflows
         let cmd = new Deno.Command(
             `act`, {
-                args: [`-W`, command.pipelineDefinitionFilePath, "-P", ACT_DEFAULT_IMAGE],
+                args: [
+                    '-s', `GITHUB_TOKEN=${GITHUB_TOKEN}`,
+                    `-W`, command.pipelineDefinitionFilePath,
+                    "-P", ACT_DEFAULT_IMAGE],
                 stdout: "piped",
                 stderr: "piped",
                 stdin: "piped",
@@ -77,7 +80,8 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
 
             if (done) return;
 
-            fullTextOutput += decoder.decode(value);
+            const line = decoder.decode(value)
+            fullTextOutput += line + "\n";
             return await processText(stream);
         })
 
@@ -86,7 +90,8 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
 
             if (done) return;
 
-            fullTextOutput += decoder.decode(value);
+            const line = decoder.decode(value)
+            fullTextOutput += line + "\n";
             return await processText(stream);
         })
 
@@ -104,7 +109,6 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
             jobStatus = JobFeedBackStatus.Error
             statusExtraInfo = "Internal error occurred."
         }
-
 
         // broadcast result
         await this.publishJobFeedbackCommandHandler.execute({

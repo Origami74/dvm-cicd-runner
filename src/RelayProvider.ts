@@ -7,14 +7,11 @@ import {NOSTR_RELAYS} from "./utils/env.ts";
 @injectable()
 export class RelayProvider implements IRelayProvider {
 
-    private logger: pino.Logger;
     private pool: NPool;
 
     constructor(
         @inject("Logger") logger: pino.Logger,
     ) {
-        this.logger = logger;
-
         this.pool = new NPool({
             open(url) {
                 return new NRelay1(url);
