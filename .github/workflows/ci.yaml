@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
       - run: echo "hello world"
       - run: ls -la
-      - run: ls ../../ -la
+      - run: which node
       - name: Get version
         run: echo "version=$(cat main.ts)"
       - name: Use Node.js
