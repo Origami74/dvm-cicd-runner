@@ -55,7 +55,7 @@ export class PublishNip89RecommendationCommandHandler implements ICommandHandler
             content: JSON.stringify(content),
             created_at: nostrNow(),
             tags: [
-                ["k", "5900"],
+                ["k", "5600"],
                 ["t", "actions"]
             ]
         }

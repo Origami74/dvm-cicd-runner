@@ -14,14 +14,14 @@ import {NostrEvent} from '@nostrify/nostrify';
 import {ACT_DEFAULT_IMAGE, GITHUB_TOKEN} from "../../utils/env.ts";
 import {copy, readerFromStreamReader} from "jsr:@std/io";
 
-export class RunPipelineCommand implements ICommand {
+export class RunWorkflowCommand implements ICommand {
     jobRequest!: NostrEvent
     rootDir!: string
-    pipelineDefinitionFilePath!: string
+    workflowFilePath!: string
 }
 
 @injectable()
-export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCommand> {
+export class RunPipelineCommandHandler implements ICommandHandler<RunWorkflowCommand> {
     constructor(
         @inject("Logger") private logger: pino.Logger,
         @inject(EventListenerRegistry.name) private eventListenerRegistry: IEventListenerRegistry,
@@ -29,16 +29,14 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
        ) {
     }
 
-    async execute(command: RunPipelineCommand): Promise<void> {
+    async execute(command: RunWorkflowCommand): Promise<void> {
 
-        const fullPath = `${command.rootDir}/${command.pipelineDefinitionFilePath}`
+        const fullPath = `${command.rootDir}/${command.workflowFilePath}`
 
         if(!fs.existsSync(fullPath)) {
             this.logger.info(`Pipeline ${fullPath} does not exist, run failed`);
             return;
         }
-
-        const file = fs.readFileSync(fullPath, "utf8");
 
         // Run act runner
         this.logger.info(`Running workflow`);
@@ -51,8 +49,8 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
             content: "",
         })
 
-
         await new Deno.Command(Deno.execPath(), { args: ["cd", command.rootDir] }).output()
+        const decoder = new TextDecoder();
 
         // TODO: might cause issues with multiple runs in parallel
         Deno.chdir(command.rootDir)
@@ -62,8 +60,10 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
             `act`, {
                 args: [
                     '-s', `GITHUB_TOKEN=${GITHUB_TOKEN}`,
-                    `-W`, command.pipelineDefinitionFilePath,
-                    "-P", ACT_DEFAULT_IMAGE],
+                    `-W`, command.workflowFilePath,
+                    "-P", ACT_DEFAULT_IMAGE,
+                    "--directory", "."
+                ],
                 stdout: "piped",
                 stderr: "piped",
                 stdin: "piped",
@@ -71,8 +71,6 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
 
         const stdoutReader = cmd.stdout.getReader();
         const stderrReader = cmd.stderr.getReader();
-
-        const decoder = new TextDecoder();
 
         let fullTextOutput = ""
         stdoutReader.read().then(async function processText({done, value}) {
@@ -102,6 +100,9 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunPipelineCom
         let statusExtraInfo = ""
         try{
             const result = await cmd.status
+
+            this.logger.info(`Finished workflow`);
+
             jobStatus = JobFeedBackStatus.Success
             statusExtraInfo = result.code == 0 ? "PipelineSuccess" : "PipelineError"
         } catch (e) {

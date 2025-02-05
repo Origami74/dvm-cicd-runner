@@ -4,21 +4,28 @@
     "jsr:@noble/hashes@^1.7.0": "1.7.0",
     "jsr:@nostrify/nostrify@~0.30.1": "0.30.1",
     "jsr:@nostrify/types@0.30": "0.30.1",
+    "jsr:@std/assert@0.224": "0.224.0",
     "jsr:@std/assert@1": "1.0.10",
     "jsr:@std/bytes@^1.0.2": "1.0.4",
+    "jsr:@std/crypto@0.224": "0.224.0",
+    "jsr:@std/encoding@0.224": "0.224.3",
     "jsr:@std/encoding@~0.224.1": "0.224.3",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/io@*": "0.225.0",
+    "npm:@cashu/cashu-ts@*": "2.1.0",
     "npm:@cashu/cashu-ts@2.1.0": "2.1.0",
     "npm:@cashu/cashu-ts@^2.1.0": "2.1.0",
+    "npm:@jridgewell/sourcemap-codec@1.5.0": "1.5.0",
     "npm:@noble/curves@1.6.0": "1.6.0",
     "npm:@noble/hashes@1.3.1": "1.3.1",
     "npm:@noble/hashes@1.5.0": "1.5.0",
+    "npm:@scure/base@^1.1.6": "1.1.9",
     "npm:@scure/bip32@^1.4.0": "1.5.0",
     "npm:@scure/bip39@^1.3.0": "1.4.0",
     "npm:@types/qrcode-terminal@0.12.2": "0.12.2",
-    "npm:@welshman/lib@^0.0.17": "0.0.17",
-    "npm:@welshman/util@^0.0.30": "0.0.30",
+    "npm:@welshman/util@0.0.30": "0.0.30",
+    "npm:@welshman/util@0.0.60": "0.0.60",
+    "npm:@welshman/util@^0.0.60": "0.0.60",
     "npm:applesauce-core@0.6.0": "0.6.0",
     "npm:blossom-client-sdk@^1.1.1": "1.1.1",
     "npm:debug@^4.4.0": "4.4.0",
@@ -35,6 +42,7 @@
     "npm:tsyringe@4.8.0": "4.8.0",
     "npm:tsyringe@^4.8.0": "4.8.0",
     "npm:websocket-ts@^2.1.5": "2.1.5",
+    "npm:zod@3.23.8": "3.23.8",
     "npm:zod@^3.23.8": "3.23.8"
   },
   "jsr": {
@@ -45,13 +53,15 @@
       "integrity": "fcc923707e87a9fbecc82dbb18756d1d3d134cd0763f4b1254c4bce709e811eb",
       "dependencies": [
         "jsr:@nostrify/types",
-        "jsr:@std/encoding",
+        "jsr:@std/crypto",
+        "jsr:@std/encoding@~0.224.1",
+        "npm:@scure/base",
         "npm:@scure/bip32",
         "npm:@scure/bip39",
         "npm:lru-cache",
         "npm:nostr-tools@^2.7.0",
         "npm:websocket-ts",
-        "npm:zod"
+        "npm:zod@^3.23.8"
       ]
     },
     "@nostrify/types@0.30.0": {
@@ -59,6 +69,9 @@
     },
     "@nostrify/types@0.30.1": {
       "integrity": "245da176f6893a43250697db51ad32bfa29bf9b1cdc1ca218043d9abf6de5ae5"
+    },
+    "@std/assert@0.224.0": {
+      "integrity": "8643233ec7aec38a940a8264a6e3eed9bfa44e7a71cc6b3c8874213ff401967f"
     },
     "@std/assert@1.0.10": {
       "integrity": "59b5cbac5bd55459a19045d95cc7c2ff787b4f8527c0dd195078ff6f9481fbb3",
@@ -68,6 +81,13 @@
     },
     "@std/bytes@1.0.4": {
       "integrity": "11a0debe522707c95c7b7ef89b478c13fb1583a7cfb9a85674cd2cc2e3a28abc"
+    },
+    "@std/crypto@0.224.0": {
+      "integrity": "154ef3ff08ef535562ef1a718718c5b2c5fc3808f0f9100daad69e829bfcdf2d",
+      "dependencies": [
+        "jsr:@std/assert@0.224",
+        "jsr:@std/encoding@0.224"
+      ]
     },
     "@std/encoding@0.224.3": {
       "integrity": "5e861b6d81be5359fad4155e591acf17c0207b595112d1840998bb9f476dbdaf"
@@ -102,6 +122,9 @@
         "@scure/bip39@1.4.0",
         "buffer"
       ]
+    },
+    "@jridgewell/sourcemap-codec@1.5.0": {
+      "integrity": "sha512-gv3ZRaISU3fjPAgNsriBRqGWQL6quFx04YMPW/zD8XMLsU32mhCCbfbO6KZFLjvYpCZ8zyDEgqsgf+PwPaM7GQ=="
     },
     "@kwsites/file-exists@1.1.1": {
       "integrity": "sha512-m9/5YGR18lIwxSFDwfE3oA7bWuq9kdau6ugN4H2rJeyhFQZcG9AgSHkQtSD15a8WvTgfz9aikZMrKPHvbpqFiw==",
@@ -250,6 +273,12 @@
         "@types/node"
       ]
     },
+    "@types/ws@8.5.14": {
+      "integrity": "sha512-bd/YFLW+URhBzMXurx7lWByOu+xzU9+kb3RboOteXYDfW+tr+JZa99OyNmPINEGB/ahzKrEuc8rcv4gnpJmxTw==",
+      "dependencies": [
+        "@types/node"
+      ]
+    },
     "@welshman/lib@0.0.17": {
       "integrity": "sha512-C0yelgMD6F5hgIcDjflJ+1Qg9/yvodtxSE00p1DZgkTn0s/7znvxraYpQInQdhqp8vJ8r+3coR3YagrRdm9+LA==",
       "dependencies": [
@@ -260,10 +289,26 @@
         "throttle-debounce"
       ]
     },
+    "@welshman/lib@0.0.39": {
+      "integrity": "sha512-MSPjbBtKPmA/j5WU8ovMZkF/0zLxZIs0r1XlOvRZbCtUeNQAIjyvvp1i1ZzQSIC++8LwQgxkuPGePgOm4DKIqA==",
+      "dependencies": [
+        "@scure/base@1.1.9",
+        "@types/events",
+        "events"
+      ]
+    },
     "@welshman/util@0.0.30": {
       "integrity": "sha512-CYLtaXfCod5Xo/OCXPUGYKwT+fRwm5DU7ASqcGwPuB/vadDodT/OJPSmrMH9Pq63VY9xK4gX/I2ma/rKRokdpg==",
       "dependencies": [
-        "@welshman/lib",
+        "@welshman/lib@0.0.17",
+        "nostr-tools"
+      ]
+    },
+    "@welshman/util@0.0.60": {
+      "integrity": "sha512-kqZgYnrwxKx0JTDZnTSaQYc2ev7E9ZjNDy5MclX36d5T/qPUspmwksAOodFJY9kJoJd49bf1omAmBTgnFJfeHw==",
+      "dependencies": [
+        "@types/ws",
+        "@welshman/lib@0.0.39",
         "nostr-tools"
       ]
     },
@@ -682,8 +727,8 @@
       "jsr:@nostrify/nostrify@~0.30.1",
       "jsr:@std/assert@1",
       "npm:@cashu/cashu-ts@^2.1.0",
-      "npm:@welshman/lib@^0.0.17",
-      "npm:@welshman/util@^0.0.30",
+      "npm:@welshman/lib@^0.0.39",
+      "npm:@welshman/util@^0.0.60",
       "npm:blossom-client-sdk@^1.1.1",
       "npm:debug@^4.4.0",
       "npm:docker-cli-js@^2.10.0",

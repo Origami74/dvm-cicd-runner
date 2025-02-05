@@ -27,7 +27,7 @@ const SPEC_STORAGE=requiredEnv("SPEC_STORAGE");
 const SPEC_STORAGE_TYPE= requiredEnv("SPEC_STORAGE_TYPE");
 
 const MINT_URL = requiredEnv("MINT_URL");
-const PRICE_PER_MIN= Number(requiredEnv("PRICE_PER_MIN"));
+const PRICE_PER_SEC= Number(requiredEnv("PRICE_PER_SEC"));
 const PRICE_UNIT= requiredEnv("PRICE_UNIT");
 const PROFIT_PAYOUT_THRESHOLD= Number(requiredEnv("PROFIT_PAYOUT_THRESHOLD"));
 const PROFIT_PAYOUT_INTERVAL_SECONDS= Number(optionalEnv("PROFIT_PAYOUT_INTERVAL_SECONDS") ?? 60);
@@ -36,7 +36,7 @@ const PROFITS_PUBKEY= requiredEnv("PROFITS_PUBKEY");
 const GITHUB_TOKEN = optionalEnv("GITHUB_TOKEN");
 const ACT_DEFAULT_IMAGE = optionalEnv("ACT_DEFAULT_IMAGE") ?? "ubuntu-latest=catthehacker/ubuntu:act-latest";
 
-
+// TODO: nscec hex
 
 // check required env
 if (NOSTR_RELAYS.length === 0) throw new Error("At least one relay is required");
@@ -61,7 +61,7 @@ export {
 
   // Money
   MINT_URL,
-  PRICE_PER_MIN,
+  PRICE_PER_SEC,
   PRICE_UNIT,
   PROFIT_PAYOUT_THRESHOLD,
   PROFITS_PUBKEY,

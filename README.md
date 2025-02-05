@@ -8,7 +8,7 @@
 
 ## Executing:
 ```shell
-deno run --env --allow-read --allow-write --allow-net --allow-run --allow-sys --allow-env --unstable-cron
+deno run --env --allow-read --allow-write --allow-net --allow-run --allow-sys --allow-env --unstable-cron main.ts
 ```
 
 ## DVM request example:
@@ -16,7 +16,7 @@ deno run --env --allow-read --allow-write --allow-net --allow-run --allow-sys --
 Note: `git_address` is of this very repository
 ```json
 {
-  "kind": 5900,
+  "kind": 5600,
   "tags": [
     [
       "param",

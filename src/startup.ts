@@ -14,8 +14,8 @@ import {
     PublishJobFeedbackCommand,
     PublishJobFeedbackCommandHandler
 } from "./cqrs/commands/PublishJobFeedbackCommand.ts";
-import {PipelineRunRequestedEvent, PipelineRunRequestedEventHandler} from "./cqrs/events/PipelineRunRequestedEvent.ts";
-import {RunPipelineCommand, RunPipelineCommandHandler} from "./cqrs/commands/RunPipelineCommand.ts";
+import {WorkflowRunRequestEvent, WorkflowRunRequestEventHandler} from "./cqrs/events/WorkflowRunRequestEvent.ts";
+import {RunWorkflowCommand, RunPipelineCommandHandler} from "./cqrs/commands/RunWorkflowCommand.ts";
 import {
     PublishNip89RecommendationCommand,
     PublishNip89RecommendationCommandHandler
@@ -43,12 +43,12 @@ export async function startup() {
     // CQRS registrations
     registerCommandHandler(PublishJobFeedbackCommand.name, PublishJobFeedbackCommandHandler)
     registerCommandHandler(CloneRepositoryCommand.name, CloneRepositoryCommandHandler)
-    registerCommandHandler(RunPipelineCommand.name, RunPipelineCommandHandler)
+    registerCommandHandler(RunWorkflowCommand.name, RunPipelineCommandHandler)
     registerCommandHandler(PublishNip89RecommendationCommand.name, PublishNip89RecommendationCommandHandler)
 
     registerQueryHandler(GetRepoAddressQuery.name, GetRepoAddressQueryHandler)
 
-    registerEventHandler(PipelineRunRequestedEvent.name, PipelineRunRequestedEventHandler)
+    registerEventHandler(WorkflowRunRequestEvent.name, WorkflowRunRequestEventHandler)
 
     container.registerSingleton(EventListenerRegistry.name, EventListenerRegistry);
 
@@ -76,12 +76,12 @@ function setupListeners() {
     const eventListenerRegistry: IEventListenerRegistry = container.resolve(EventListenerRegistry.name);
     var gitWatchFilters = [
         {
-            kinds: [5900],
+            kinds: [5600],
             limit: 1000,
             since: nostrNow()
         }
     ]
 
-    const repoWatchRequestedEventHandler: IEventHandler<PipelineRunRequestedEvent> = container.resolve(PipelineRunRequestedEvent.name);
+    const repoWatchRequestedEventHandler: IEventHandler<WorkflowRunRequestEvent> = container.resolve(WorkflowRunRequestEvent.name);
     eventListenerRegistry.add("watch-job-requests", gitWatchFilters, repoWatchRequestedEventHandler)
 }

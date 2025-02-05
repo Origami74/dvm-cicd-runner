@@ -7,6 +7,8 @@ import {RelayProvider} from "../../RelayProvider.ts";
 import type IRelayProvider from "../../IRelayProvider.ts";
 import {NRelay, NSecSigner, NostrEvent} from '@nostrify/nostrify';
 import {NOSTR_PRIVATE_KEY} from "../../utils/env.ts";
+import {PaymentRequest} from "npm:@cashu/cashu-ts";
+import {comma} from "npm:@jridgewell/sourcemap-codec@1.5.0/dist/types/vlq.d.ts";
 
 // As specified n NIP-90 Job feedback status
 export enum JobFeedBackStatus {
@@ -22,6 +24,7 @@ export class PublishJobFeedbackCommand implements ICommand {
     status!: JobFeedBackStatus;
     statusExtraInfo?: string;
     content?: string;
+    paymentRequest?: PaymentRequest;
 }
 
 @injectable()
@@ -40,7 +43,7 @@ export class PublishJobFeedbackCommandHandler implements ICommandHandler<Publish
         const signer = new NSecSigner(NOSTR_PRIVATE_KEY);
         const signerPubkey = await signer.getPublicKey();
 
-        var note = {
+        const jobFeedbackEvent = {
             kind: command.jobRequest.kind + 1000,
             pubkey: signerPubkey,
             content: command.content,
@@ -48,10 +51,18 @@ export class PublishJobFeedbackCommandHandler implements ICommandHandler<Publish
             tags: [
                 ["status", command.status.toString(), command.statusExtraInfo],
                 ["e", command.jobRequest.id],
-                ["p", command.jobRequest.pubkey]
+                ["p", command.jobRequest.pubkey],
             ]
+        };
+
+        if(command.paymentRequest){
+            const amount = (command.paymentRequest.amount ?? 0) * 1000
+            jobFeedbackEvent.tags.push(
+                ["amount", amount.toString(), command.paymentRequest.toEncodedRequest()]
+            )
         }
-        const envt = await signer.signEvent(note);
+
+        const envt = await signer.signEvent(jobFeedbackEvent);
 
         await this.relay.event(envt)
     }

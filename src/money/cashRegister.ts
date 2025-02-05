@@ -10,7 +10,7 @@ import {
 import type { IWallet } from "./wallet.ts"
 import { Wallet } from "./wallet.ts";
 import { getAmount, toCashuToken } from "../utils/money.ts";
-import { MINT_URL, PRICE_PER_MIN, PRICE_UNIT, PROFIT_PAYOUT_THRESHOLD, PROFITS_PUBKEY } from "../utils/env.ts";
+import { MINT_URL, PRICE_PER_SEC, PRICE_UNIT, PROFIT_PAYOUT_THRESHOLD, PROFITS_PUBKEY } from "../utils/env.ts";
 import { randomUUID } from "node:crypto";
 import {EventPublisher, type IEventPublisher} from "../publisher/EventPublisher.ts";
 import pino from "npm:pino@9.4.0";
@@ -48,7 +48,7 @@ export class CashRegister implements ICashRegister {
     return new PaymentRequest(
       [transport],
       randomUUID(),
-      PRICE_PER_MIN,
+      PRICE_PER_SEC,
       PRICE_UNIT,
       [MINT_URL],
       "Price per minute of compute",
