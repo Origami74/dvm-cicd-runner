@@ -11,6 +11,7 @@ import {JobFeedBackStatus, PublishJobFeedbackCommand} from "../commands/PublishJ
 import {MINT_URL, PRICE_PER_SEC, PRICE_UNIT} from "../../utils/env.ts";
 import {PaymentRequest, PaymentRequestTransport, PaymentRequestTransportType} from "npm:@cashu/cashu-ts";
 import {randomUUID} from "node:crypto";
+import {getTagValues} from "npm:@welshman/util@0.0.60";
 
 export class WorkflowRunRequestEvent implements IEvent {
     nostrEvent!: NostrEvent;
@@ -34,8 +35,14 @@ export class WorkflowRunRequestEventHandler implements IEventHandler<WorkflowRun
 
             const request = workflowRunRequestFromNostrEvent(event.nostrEvent)
 
+            // Simulate payment failure
+            if(Math.random() < 0.5){
+                request.payment = undefined;
+            }
+
             // Respond with quote
             if(!request.payment){
+                console.error("No payment found");
                 const quoteAmount = request.workflowTimeOut * PRICE_PER_SEC
                 const quoteExplanation = `Prepayment ${quoteAmount} ${PRICE_UNIT} for timeout ${request.workflowTimeOut}`
 
@@ -59,6 +66,7 @@ export class WorkflowRunRequestEventHandler implements IEventHandler<WorkflowRun
                     status: JobFeedBackStatus.PaymentRequired,
                     jobRequest: event.nostrEvent,
                     statusExtraInfo: quoteExplanation,
+                    addressPointers: getTagValues("a", event.nostrEvent.tags),
                     content: "",
                     paymentRequest: quote
                 })

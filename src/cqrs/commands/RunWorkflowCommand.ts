@@ -13,6 +13,7 @@ import {
 import {NostrEvent} from '@nostrify/nostrify';
 import {ACT_DEFAULT_IMAGE, GITHUB_TOKEN} from "../../utils/env.ts";
 import {copy, readerFromStreamReader} from "jsr:@std/io";
+import {getTags, getTagValues} from "npm:@welshman/util@0.0.60";
 
 export class RunWorkflowCommand implements ICommand {
     jobRequest!: NostrEvent
@@ -45,6 +46,7 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunWorkflowCom
         await this.publishJobFeedbackCommandHandler.execute({
             status: JobFeedBackStatus.Processing,
             jobRequest: command.jobRequest,
+            addressPointers: getTagValues("a", command.jobRequest.tags),
             statusExtraInfo: "Started running pipeline",
             content: "",
         })
@@ -116,6 +118,7 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunWorkflowCom
             status: jobStatus,
             jobRequest: command.jobRequest,
             statusExtraInfo: statusExtraInfo,
+            addressPointers: getTagValues("a", command.jobRequest.tags),
             content: fullTextOutput,
         })
     }

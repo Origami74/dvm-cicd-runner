@@ -24,6 +24,7 @@ export class PublishJobFeedbackCommand implements ICommand {
     status!: JobFeedBackStatus;
     statusExtraInfo?: string;
     content?: string;
+    addressPointers: string[] = [];
     paymentRequest?: PaymentRequest;
 }
 
@@ -49,11 +50,18 @@ export class PublishJobFeedbackCommandHandler implements ICommandHandler<Publish
             content: command.content,
             created_at: nostrNow(),
             tags: [
-                ["status", command.status.toString(), command.statusExtraInfo],
+                ["s", command.status.toString(), command.statusExtraInfo],
                 ["e", command.jobRequest.id],
                 ["p", command.jobRequest.pubkey],
             ]
         };
+
+        // Add addresses pointers
+        if(command.addressPointers?.length > 0) {
+            command.addressPointers.forEach(addressPointer => {
+                jobFeedbackEvent.tags.push(["a", addressPointer]);
+            })
+        }
 
         if(command.paymentRequest){
             const amount = (command.paymentRequest.amount ?? 0) * 1000

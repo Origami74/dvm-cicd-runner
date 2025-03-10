@@ -7,7 +7,8 @@ import {RelayProvider} from "../../RelayProvider.ts";
 import type IRelayProvider from "../../IRelayProvider.ts";
 import {NRelay, NSecSigner} from '@nostrify/nostrify';
 import {
-    NOSTR_PRIVATE_KEY,
+    MINT_URL,
+    NOSTR_PRIVATE_KEY, PRICE_PER_SEC, PRICE_UNIT,
     SERVICE_ABOUT,
     SERVICE_NAME, SPEC_RAM, SPEC_RUNNERS,
     SPEC_STORAGE,
@@ -38,25 +39,20 @@ export class PublishNip89RecommendationCommandHandler implements ICommandHandler
 
         const content = {
             name: SERVICE_NAME,
-            about: SERVICE_ABOUT,
-            manifest: {
-                version: 1,
-                runners: SPEC_RUNNERS,
-                vcpu: SPEC_VCPU,
-                ram: SPEC_RAM,
-                storage: SPEC_STORAGE,
-                storageType: SPEC_STORAGE_TYPE
-            }
+            about: SERVICE_ABOUT
         }
 
         var note = {
-            kind: 31989,
+            kind: 31990,
             pubkey: signerPubkey,
             content: JSON.stringify(content),
             created_at: nostrNow(),
             tags: [
                 ["k", "5600"],
-                ["t", "actions"]
+                ["t", "high-bandwidth"],
+                ["price", `${PRICE_PER_SEC}`],
+                ["unit", PRICE_UNIT],
+                ["mint", MINT_URL]
             ]
         }
 
