@@ -9,7 +9,7 @@ import {PublishDmCommand, PublishDmCommandHandler} from "../cqrs/commands/Publis
 
 export interface IWallet {
   receive(cashuToken: string): Promise<number>;
-  addProofs(nuts: []): any;
+  addProofs(nuts: Proof[]): any;
   withdrawAll(pubkey?: string): Promise<Proof[]>;
   getBalance(): number;
   

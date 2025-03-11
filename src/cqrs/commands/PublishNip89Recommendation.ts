@@ -10,10 +10,7 @@ import {
     MINT_URL,
     NOSTR_PRIVATE_KEY, PRICE_PER_SEC, PRICE_UNIT,
     SERVICE_ABOUT,
-    SERVICE_NAME, SPEC_RAM, SPEC_RUNNERS,
-    SPEC_STORAGE,
-    SPEC_STORAGE_TYPE,
-    SPEC_VCPU
+    SERVICE_NAME
 } from "../../utils/env.ts";
 
 export class PublishNip89RecommendationCommand implements ICommand {

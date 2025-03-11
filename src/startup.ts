@@ -21,8 +21,7 @@ import {
     PublishNip89RecommendationCommandHandler
 } from "./cqrs/commands/PublishNip89Recommendation.ts";
 import {Wallet} from "./money/wallet.ts";
-import {CashRegister} from "./money/cashRegister.ts";
-import Payout from "./money/payout.ts";
+import PayoutManager from "./money/payoutManager.ts";
 import {PublishDmCommand, PublishDmCommandHandler} from "./cqrs/commands/PublishDmCommand.ts";
 export async function startup() {
     const stream = pretty({
@@ -54,8 +53,7 @@ export async function startup() {
     container.registerSingleton(EventListenerRegistry.name, EventListenerRegistry);
 
     container.registerSingleton(Wallet.name, Wallet);
-    container.registerSingleton(CashRegister.name, CashRegister);
-    container.registerSingleton(Payout.name, Payout);
+    container.registerSingleton(PayoutManager.name, PayoutManager);
 
     logger.info("All services registered");
 
@@ -63,7 +61,7 @@ export async function startup() {
 
     logger.info("Starting cron services");
 
-    container.resolve<Payout>(Payout.name).start();
+    container.resolve<PayoutManager>(PayoutManager.name).start();
 
     const publishNip89: PublishNip89RecommendationCommandHandler = container.resolve(PublishNip89RecommendationCommand.name)
 

@@ -20,12 +20,6 @@ const SERVICE_NAME = requiredEnv("SERVICE_NAME");
 const SERVICE_ABOUT = requiredEnv("SERVICE_ABOUT");
 const SERVICE_PICTURE_URL = requiredEnv("SERVICE_PICTURE_URL");
 
-const SPEC_RUNNERS= requiredEnv("SPEC_RUNNERS").split(",");
-const SPEC_VCPU=requiredEnv("SPEC_VCPU");
-const SPEC_RAM=requiredEnv("SPEC_RAM");
-const SPEC_STORAGE=requiredEnv("SPEC_STORAGE");
-const SPEC_STORAGE_TYPE= requiredEnv("SPEC_STORAGE_TYPE");
-
 const MINT_URL = requiredEnv("MINT_URL");
 const PRICE_PER_SEC= Number(requiredEnv("PRICE_PER_SEC"));
 const PRICE_UNIT= requiredEnv("PRICE_UNIT");
@@ -55,12 +49,6 @@ export {
   // ACT runner
   GITHUB_TOKEN,
   ACT_DEFAULT_IMAGE,
-
-  SPEC_RUNNERS,
-  SPEC_VCPU,
-  SPEC_RAM,
-  SPEC_STORAGE,
-  SPEC_STORAGE_TYPE,
 
   // Money
   MINT_URL,
