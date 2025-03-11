@@ -4,7 +4,6 @@ import IEventHandler from '../base/IEventHandler.ts';
 import IEvent from '../base/IEvent.ts';
 import {NostrEvent} from '@nostrify/nostrify';
 import type ICommandHandler from "../base/ICommandHandler.ts";
-import {CloneRepositoryCommand} from "../commands/CloneRepositoryCommand.ts";
 import {RunWorkflowCommand} from "../commands/RunWorkflowCommand.ts";
 import {workflowRunRequestFromNostrEvent} from "../../WorkFlowRunRequest.ts";
 import {JobFeedBackStatus, PublishJobFeedbackCommand} from "../commands/PublishJobFeedbackCommand.ts";
@@ -13,6 +12,8 @@ import {PaymentRequest, PaymentRequestTransport, PaymentRequestTransportType} fr
 import {randomUUID} from "node:crypto";
 import {getTagValues} from "npm:@welshman/util@0.0.60";
 import {type IWallet, Wallet} from "../../money/wallet.ts";
+import {nostrNow} from "../../utils/nostrEventUtils.ts";
+import {calculateChange} from "../../utils/money.ts";
 
 export class WorkflowRunRequestEvent implements IEvent {
     nostrEvent!: NostrEvent;
@@ -23,7 +24,6 @@ export class WorkflowRunRequestEventHandler implements IEventHandler<WorkflowRun
 
     constructor(
         @inject("Logger") private logger: pino.Logger,
-        @inject(CloneRepositoryCommand.name) private cloneRepositoryCommandHandler: ICommandHandler<CloneRepositoryCommand>,
         @inject(RunWorkflowCommand.name) private runWorkflowCommandHandler: ICommandHandler<RunWorkflowCommand>,
         @inject(PublishJobFeedbackCommand.name) private publishJobFeedbackCommandHandler: ICommandHandler<PublishJobFeedbackCommand>,
         @inject(Wallet.name) private wallet: IWallet,
@@ -35,6 +35,8 @@ export class WorkflowRunRequestEventHandler implements IEventHandler<WorkflowRun
         this.logger.info(event.nostrEvent)
         try {
             const request = await workflowRunRequestFromNostrEvent(event.nostrEvent)
+
+            let receivedPaymentAmount: number;
 
             if(!request.payment){
                 console.error("No payment found");
@@ -70,7 +72,7 @@ export class WorkflowRunRequestEventHandler implements IEventHandler<WorkflowRun
             }
 
             try{
-                await this.wallet.receive(request.payment)
+                receivedPaymentAmount = await this.wallet.receive(request.payment)
             } catch (err) {
                 console.warn("Failed to receive customer payment. Error:", err)
 
@@ -87,16 +89,36 @@ export class WorkflowRunRequestEventHandler implements IEventHandler<WorkflowRun
 
             // Clone commit into tmp folder
             const dir = `tmp/${event.nostrEvent.id}`;
-            await this.cloneRepositoryCommandHandler.execute({cloneDir: dir, repoAddress: request.repositoryAddress, repoRef: request.repositoryRef})
+            const workflowStartedAt = nostrNow()
+            try {
+                await this.runWorkflowCommandHandler.execute({
+                    jobRequest: event.nostrEvent,
+                    rootDir: dir,
+                    workflowFilePath: request.workflowFilePath,
+                    repositoryAddress: request.repositoryAddress,
+                    repositoryRef: request.repositoryRef,
+                    receivedPaymentAmount: receivedPaymentAmount
+                })
+            } catch (e) {
+                console.error("Error executing workflow", e);
 
-            // Execute pipeline build
-            await this.runWorkflowCommandHandler.execute({jobRequest: event.nostrEvent, rootDir: dir, workflowFilePath: request.workflowFilePath})
+                const changeAmount = calculateChange(workflowStartedAt, receivedPaymentAmount)
+                const changeToken = await this.wallet.withdrawAmountAsToken(changeAmount)
 
-
-            // Write output to result
+                await this.publishJobFeedbackCommandHandler.execute({
+                    status: JobFeedBackStatus.Error,
+                    jobRequest: event.nostrEvent,
+                    statusExtraInfo: "An internal error occurred",
+                    addressPointers: getTagValues("a", event.nostrEvent.tags),
+                    paymentChange: changeToken,
+                    content: "",
+                })
+            }
 
         } catch (e){
             this.logger.error(e, "error when Building")
         }
     }
+
+
 }

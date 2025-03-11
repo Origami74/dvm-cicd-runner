@@ -8,7 +8,6 @@ import type IRelayProvider from "../../IRelayProvider.ts";
 import {NRelay, NSecSigner, NostrEvent} from '@nostrify/nostrify';
 import {NOSTR_PRIVATE_KEY} from "../../utils/env.ts";
 import {PaymentRequest} from "npm:@cashu/cashu-ts";
-import {comma} from "npm:@jridgewell/sourcemap-codec@1.5.0/dist/types/vlq.d.ts";
 
 // As specified n NIP-90 Job feedback status
 export enum JobFeedBackStatus {
@@ -26,6 +25,7 @@ export class PublishJobFeedbackCommand implements ICommand {
     content?: string;
     addressPointers: string[] = [];
     paymentRequest?: PaymentRequest;
+    paymentChange?: string;
 }
 
 @injectable()
@@ -61,6 +61,13 @@ export class PublishJobFeedbackCommandHandler implements ICommandHandler<Publish
             command.addressPointers.forEach(addressPointer => {
                 jobFeedbackEvent.tags.push(["a", addressPointer]);
             })
+        }
+
+        // add change
+        if(command.paymentChange) {
+            jobFeedbackEvent.tags.push(
+                ["payment_change", await signer.nip44.encrypt(command.paymentChange, command.jobRequest.pubkey)] // potential privacy issue
+            )
         }
 
         if(command.paymentRequest){

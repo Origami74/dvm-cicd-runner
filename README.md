@@ -30,7 +30,7 @@ Note: `git_address` is of this very repository
     ],
     [
       "param",
-      "pipeline_filepath",
+      "workflow_filepath",
       ".github/workflows/ci.yaml"
     ]
   ],

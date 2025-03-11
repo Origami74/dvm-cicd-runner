@@ -1,8 +1,8 @@
 import { injectable } from "tsyringe";
 import { CashuMint, CashuWallet, Proof, getDecodedToken, type Token, getEncodedTokenV4 } from "@cashu/cashu-ts";
 
-import { getAmount, toCashuToken } from "../utils/money.ts";
-import {DEVELOPER_SUPPORT_FACTOR, MINT_URL, NOSTR_PRIVATE_KEY_HEX} from "../utils/env.ts";
+import { getAmount } from "../utils/money.ts";
+import {DEVELOPER_SUPPORT_FACTOR, MINT_URL, PRICE_UNIT} from "../utils/env.ts";
 import {inject} from "npm:tsyringe@4.8.0";
 import pino from "npm:pino@9.4.0";
 import {PublishDmCommand, PublishDmCommandHandler} from "../cqrs/commands/PublishDmCommand.ts";
@@ -11,6 +11,7 @@ export interface IWallet {
   receive(cashuToken: string): Promise<number>;
   addProofs(nuts: Proof[]): any;
   withdrawAll(pubkey?: string): Promise<Proof[]>;
+  withdrawAmountAsToken(amount: number): Promise<string>;
   getBalance(): number;
   
   mintUrl: string;
@@ -58,7 +59,7 @@ export class Wallet implements IWallet {
     const nutSackAmount = getAmount(this.nutSack);
     console.log(`Received ${keepAmount} sats, wallet now contains ${nutSackAmount} sats`);
 
-    return nutSackAmount;
+    return receivedAmount;
   }
 
   public addProofs(nuts: Proof[]) {
@@ -68,15 +69,23 @@ export class Wallet implements IWallet {
   /**
    * If a pubkey is passed, the tokens will be locked to that pubkey.
    */
-  public async withdrawAll(pubkey: string | undefined): Promise<Proof[]> {
+  public async withdrawAll(): Promise<Proof[]> {
     const nuts = this.nutSack;
     this.nutSack = [];
 
     const removedAmount = getAmount(nuts);
     const nutSackAmount = getAmount(this.nutSack);
-    console.log(`Removed ${removedAmount} sats, wallet now contains ${nutSackAmount} sats`);
+    console.log(`Removed ${removedAmount} ${PRICE_UNIT}'s. New balance: ${nutSackAmount} ${PRICE_UNIT}'s`);
 
     return nuts;
+  }
+
+  public async withdrawAmountAsToken(amount: number): Promise<string> {
+    console.log(`Removed ${amount} ${PRICE_UNIT}'s. New balance: ${getAmount(this.nutSack)} ${PRICE_UNIT}'s`);
+    const {keep, send} = await this.cashuWallet.send(amount, this.nutSack, {includeFees: true});
+    this.nutSack = keep;
+
+    return getEncodedTokenV4({mint: this.mint.mintUrl, proofs: send});;
   }
 
   public getBalance = (): number => getAmount(this.nutSack);

@@ -15,7 +15,7 @@ import {
     PublishJobFeedbackCommandHandler
 } from "./cqrs/commands/PublishJobFeedbackCommand.ts";
 import {WorkflowRunRequestEvent, WorkflowRunRequestEventHandler} from "./cqrs/events/WorkflowRunRequestEvent.ts";
-import {RunWorkflowCommand, RunPipelineCommandHandler} from "./cqrs/commands/RunWorkflowCommand.ts";
+import {RunWorkflowCommand, RunWorkflowCommandHandler} from "./cqrs/commands/RunWorkflowCommand.ts";
 import {
     PublishNip89RecommendationCommand,
     PublishNip89RecommendationCommandHandler
@@ -42,7 +42,7 @@ export async function startup() {
     // CQRS registrations
     registerCommandHandler(PublishJobFeedbackCommand.name, PublishJobFeedbackCommandHandler)
     registerCommandHandler(CloneRepositoryCommand.name, CloneRepositoryCommandHandler)
-    registerCommandHandler(RunWorkflowCommand.name, RunPipelineCommandHandler)
+    registerCommandHandler(RunWorkflowCommand.name, RunWorkflowCommandHandler)
     registerCommandHandler(PublishNip89RecommendationCommand.name, PublishNip89RecommendationCommandHandler)
     registerCommandHandler(PublishDmCommand.name, PublishDmCommandHandler)
 

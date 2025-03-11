@@ -14,28 +14,41 @@ import {NostrEvent} from '@nostrify/nostrify';
 import {ACT_DEFAULT_IMAGE, GITHUB_TOKEN} from "../../utils/env.ts";
 import {copy, readerFromStreamReader} from "jsr:@std/io";
 import {getTagValues} from "npm:@welshman/util@0.0.60";
+import {CloneRepositoryCommand} from "./CloneRepositoryCommand.ts";
+import {nostrNow} from "../../utils/nostrEventUtils.ts";
+import {type IWallet, Wallet} from "../../money/wallet.ts";
+import {calculateChange} from "../../utils/money.ts";
 
 export class RunWorkflowCommand implements ICommand {
     jobRequest!: NostrEvent
     rootDir!: string
     workflowFilePath!: string
+    repositoryAddress!: string
+    repositoryRef!: string
+    receivedPaymentAmount!: number
 }
 
 @injectable()
-export class RunPipelineCommandHandler implements ICommandHandler<RunWorkflowCommand> {
+export class RunWorkflowCommandHandler implements ICommandHandler<RunWorkflowCommand> {
     constructor(
         @inject("Logger") private logger: pino.Logger,
         @inject(EventListenerRegistry.name) private eventListenerRegistry: IEventListenerRegistry,
         @inject(PublishJobFeedbackCommand.name) private publishJobFeedbackCommandHandler: PublishJobFeedbackCommandHandler,
+        @inject(CloneRepositoryCommand.name) private cloneRepositoryCommandHandler: ICommandHandler<CloneRepositoryCommand>,
+        @inject(Wallet.name) private wallet: IWallet,
        ) {
     }
 
     async execute(command: RunWorkflowCommand): Promise<void> {
+        const workflowStartedAt = nostrNow()
 
         const fullPath = `${command.rootDir}/${command.workflowFilePath}`
+        await this.cloneRepositoryCommandHandler.execute({cloneDir: command.rootDir, repoAddress: command.repositoryAddress, repoRef: command.repositoryRef})
 
         if(!fs.existsSync(fullPath)) {
-            this.logger.info(`Pipeline ${fullPath} does not exist, run failed`);
+            this.logger.info(`Workflow ${fullPath} does not exist, run failed`);
+            await this.sendPartialResult(command, `Workflow ${command.workflowFilePath} does not exist, run failed`)
+            await this.sendJobResult(command, workflowStartedAt,false)
             return;
         }
 
@@ -47,7 +60,7 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunWorkflowCom
             status: JobFeedBackStatus.Processing,
             jobRequest: command.jobRequest,
             addressPointers: getTagValues("a", command.jobRequest.tags),
-            statusExtraInfo: "Started running pipeline",
+            statusExtraInfo: "Started running workflow",
             content: "",
         })
 
@@ -74,52 +87,74 @@ export class RunPipelineCommandHandler implements ICommandHandler<RunWorkflowCom
         const stdoutReader = cmd.stdout.getReader();
         const stderrReader = cmd.stderr.getReader();
 
-        let fullTextOutput = ""
-        stdoutReader.read().then(async function processText({done, value}) {
+        const maxSecBetweenPartials = 5
+        let lastPartialTime = nostrNow();
+        let lastSentLineIndex = -1;
+        let unsentLineCount = 0;
+        const lines: string[] = []
+
+        const processStream = async ({done, value}: ReadableStreamReadResult<Uint8Array>) => {
             const stream = await stdoutReader.read();
 
-            if (done) return;
+            // read line if it has a value
+            if(value !== undefined){
+                const lineStr = decoder.decode(value)
+                lines.push(lineStr);
+                unsentLineCount++;
+            }
 
-            const line = decoder.decode(value)
-            fullTextOutput += line + "\n";
-            return await processText(stream);
-        })
+            // send if the stream is closed, or if linecount/timer expires
+            if(done || unsentLineCount >= 25 || nostrNow() - lastPartialTime > maxSecBetweenPartials){
+                await this.sendPartialResult(command, lines.join("\n"))
+                lastSentLineIndex = lastSentLineIndex + unsentLineCount;
+                lastPartialTime = nostrNow();
+                unsentLineCount = 0
+            }
 
-        stderrReader.read().then(async function processText({done, value}) {
-            const stream = await stdoutReader.read();
+            if (done) {
+                return;
+            }
 
-            if (done) return;
+            return await processStream(stream); // Continue reading stream
+        };
 
-            const line = decoder.decode(value)
-            fullTextOutput += line + "\n";
-            return await processText(stream);
-        })
+        stdoutReader.read().then((readResult) => processStream(readResult))
+        stderrReader.read().then((readResult) => processStream(readResult))
 
         copy(readerFromStreamReader(stdoutReader), Deno.stdout);
         copy(readerFromStreamReader(stderrReader), Deno.stderr);
 
-        let jobStatus: JobFeedBackStatus;
-        let statusExtraInfo = ""
-        try{
-            const result = await cmd.status
+        const result = await cmd.status
+        const jobSucceeded = result.code == 0 ? true : false
 
-            this.logger.info(`Finished workflow`);
+        await this.sendJobResult(command, workflowStartedAt, jobSucceeded)
 
-            jobStatus = JobFeedBackStatus.Success
-            statusExtraInfo = result.code == 0 ? "PipelineSuccess" : "PipelineError"
-        } catch (e) {
-            console.error("Error executing pipeline", e);
-            jobStatus = JobFeedBackStatus.Error
-            statusExtraInfo = "Internal error occurred."
-        }
+        this.logger.info(`Finished workflow`);
+    }
 
-        // broadcast result
+    private async sendPartialResult(command: RunWorkflowCommand, content: string) {
         await this.publishJobFeedbackCommandHandler.execute({
-            status: jobStatus,
+            status: JobFeedBackStatus.Partial,
             jobRequest: command.jobRequest,
-            statusExtraInfo: statusExtraInfo,
+            statusExtraInfo: "",
             addressPointers: getTagValues("a", command.jobRequest.tags),
-            content: fullTextOutput,
+            content: content
+        })
+    }
+
+    private async sendJobResult(command: RunWorkflowCommand, workflowStartedAt: number, jobSucceeded: boolean) {
+
+        // Get the change
+        const changeAmount = calculateChange(workflowStartedAt, command.receivedPaymentAmount)
+        this.logger.info(`Returning ${changeAmount} in change to customer`);
+        const changeToken = await this.wallet.withdrawAmountAsToken(changeAmount)
+
+        await this.publishJobFeedbackCommandHandler.execute({
+            status: JobFeedBackStatus.Success,
+            jobRequest: command.jobRequest,
+            statusExtraInfo: jobSucceeded === true ? "WorkflowSuccess" : "WorkflowError",
+            addressPointers: getTagValues("a", command.jobRequest.tags),
+            paymentChange: changeToken,
         })
     }
 }
