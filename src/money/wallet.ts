@@ -1,15 +1,15 @@
 import { injectable } from "tsyringe";
-import { CashuMint, CashuWallet, Proof } from "@cashu/cashu-ts";
-import { bytesToHex } from "@noble/hashes/utils";
+import { CashuMint, CashuWallet, Proof, getDecodedToken, type Token, getEncodedTokenV4 } from "@cashu/cashu-ts";
 
 import { getAmount, toCashuToken } from "../utils/money.ts";
-import { MINT_URL, NOSTR_PRIVATE_KEY_HEX } from "../utils/env.ts";
-import {getEncodedTokenV4} from "npm:@cashu/cashu-ts@2.1.0";
+import {DEVELOPER_SUPPORT_FACTOR, MINT_URL, NOSTR_PRIVATE_KEY_HEX} from "../utils/env.ts";
 import {inject} from "npm:tsyringe@4.8.0";
 import pino from "npm:pino@9.4.0";
+import {PublishDmCommand, PublishDmCommandHandler} from "../cqrs/commands/PublishDmCommand.ts";
 
 export interface IWallet {
-  add(proofs: Proof[]): Promise<number>;
+  receive(cashuToken: string): Promise<number>;
+  addProofs(nuts: []): any;
   withdrawAll(pubkey?: string): Promise<Proof[]>;
   getBalance(): number;
   
@@ -26,24 +26,43 @@ export class Wallet implements IWallet {
 
   constructor(
       @inject("Logger") private logger: pino.Logger,
+      @inject(PublishDmCommand.name) private publishDmCommandHandler: PublishDmCommandHandler,
   ) {
   }
+
   /**
    * Redeems tokens and adds them to wallet.
    * Returns total amount in wallet
    */
-  public async add(proofs: Proof[]): Promise<number> {
+  public async receive(tokenString: string): Promise<number> {
+    const token: Token =  getDecodedToken(tokenString);
 
-    const token = getEncodedTokenV4({ mint: this.mintUrl, proofs: proofs });
-    const received = await this.cashuWallet.receive(token);
+    if(token.mint != MINT_URL){
+      throw new Error(`Mint '${token.mint}' not supported, use mint: ${MINT_URL}`)
+    }
 
-    this.nutSack = [...this.nutSack, ...received];
+    const receivedProofs = await this.cashuWallet.receive(token);
+    const receivedAmount = getAmount(receivedProofs);
 
-    const receivedAmount = getAmount(proofs);
+    const developerSupportAmount = Math.floor(receivedAmount * DEVELOPER_SUPPORT_FACTOR)
+
+    const {keep, send: developerSupportProofs} = await this.cashuWallet.send(developerSupportAmount, receivedProofs, {includeFees: true});
+    const developerSupportToken = getEncodedTokenV4({mint: this.mint.mintUrl, proofs: developerSupportProofs});
+
+    const developerPubkeyHex = "13c5231ece335f39bd0a464646c5c9adec37abe08c883b73753bc8a288595764"
+    await this.publishDmCommandHandler.execute({pubkey: developerPubkeyHex, message: developerSupportToken})
+
+    const keepAmount = getAmount(keep);
+    this.nutSack = [...this.nutSack, ...keep];
+
     const nutSackAmount = getAmount(this.nutSack);
-    console.log(`Received ${receivedAmount} sats, wallet now contains ${nutSackAmount} sats`);
+    console.log(`Received ${keepAmount} sats, wallet now contains ${nutSackAmount} sats`);
 
     return nutSackAmount;
+  }
+
+  public addProofs(nuts: Proof[]) {
+    this.nutSack = [...this.nutSack, ...nuts];
   }
 
   /**
@@ -57,8 +76,7 @@ export class Wallet implements IWallet {
     const nutSackAmount = getAmount(this.nutSack);
     console.log(`Removed ${removedAmount} sats, wallet now contains ${nutSackAmount} sats`);
 
-    const { keep, send } = await this.cashuWallet.send(removedAmount, nuts, {privkey: NOSTR_PRIVATE_KEY_HEX});
-    return send;
+    return nuts;
   }
 
   public getBalance = (): number => getAmount(this.nutSack);

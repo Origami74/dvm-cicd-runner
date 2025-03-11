@@ -93,13 +93,13 @@ export class CashRegister implements ICashRegister {
       const cashuToken = toCashuToken(nuts, this.wallet.mintUrl);
       await this.eventPublisher.publishDM(
         this.profitsPubkey,
-        `Here's your profits from your relay proxying service. At ${new Date().toUTCString()}.\n ${cashuToken}`,
+        `Here's your profits for dvm-cicd-runner. At ${new Date().toUTCString()}.\n ${cashuToken}`,
       );
     } catch (e) {
       console.error("Failed to forward payment in dm", e);
 
       // NOTE: this will not work if the nuts are locked to the profitsPubkey
-      await this.wallet.add(nuts);
+      await this.wallet.addProofs(nuts);
     }
   }
 }

@@ -1,6 +1,11 @@
 import {NostrEvent} from "@nostrify/nostrify";
 import {getParams} from "./utils/dvm.ts";
-import {getTagValue} from "npm:@welshman/util@0.0.60";
+import {NSecSigner} from '@nostrify/nostrify';
+import {NOSTR_PRIVATE_KEY} from "./utils/env.ts";
+import {unlockHiddenTags, getHiddenTags, EventEncryptionMethod} from "applesauce-core/helpers";
+
+// Tell applesauce that this kind uses nip44
+EventEncryptionMethod[5600] = "nip44"
 
 export interface WorkflowRunRequest {
     repositoryAddress: string
@@ -11,7 +16,7 @@ export interface WorkflowRunRequest {
 }
 
 
-export function workflowRunRequestFromNostrEvent(event: NostrEvent): WorkflowRunRequest {
+export async function workflowRunRequestFromNostrEvent(event: NostrEvent): Promise<WorkflowRunRequest> {
     const params = getParams(event);
 
     const repoAddress = requireParam(params, "git_address")
@@ -23,7 +28,18 @@ export function workflowRunRequestFromNostrEvent(event: NostrEvent): WorkflowRun
         throw new Error("workflow_timeout must be a number")
     }
 
-    const payment = getTagValue("payment", event.tags)
+    let payment = undefined;
+
+    const signer = new NSecSigner(NOSTR_PRIVATE_KEY);
+    try{
+        await unlockHiddenTags(event, signer)
+
+        const hiddenTags = getHiddenTags(event)!
+
+        payment = hiddenTags.find(t => t[0] === "payment")?.[1]
+    } catch(error){
+        console.warn("Error decrypting hidden tags", error)
+    }
 
     return {
         repositoryAddress: repoAddress,

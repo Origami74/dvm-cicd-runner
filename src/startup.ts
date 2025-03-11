@@ -23,7 +23,7 @@ import {
 import {Wallet} from "./money/wallet.ts";
 import {CashRegister} from "./money/cashRegister.ts";
 import Payout from "./money/payout.ts";
-
+import {PublishDmCommand, PublishDmCommandHandler} from "./cqrs/commands/PublishDmCommand.ts";
 export async function startup() {
     const stream = pretty({
         levelFirst: true,
@@ -45,6 +45,7 @@ export async function startup() {
     registerCommandHandler(CloneRepositoryCommand.name, CloneRepositoryCommandHandler)
     registerCommandHandler(RunWorkflowCommand.name, RunPipelineCommandHandler)
     registerCommandHandler(PublishNip89RecommendationCommand.name, PublishNip89RecommendationCommandHandler)
+    registerCommandHandler(PublishDmCommand.name, PublishDmCommandHandler)
 
     registerQueryHandler(GetRepoAddressQuery.name, GetRepoAddressQueryHandler)
 
@@ -65,6 +66,8 @@ export async function startup() {
     container.resolve<Payout>(Payout.name).start();
 
     const publishNip89: PublishNip89RecommendationCommandHandler = container.resolve(PublishNip89RecommendationCommand.name)
+
+    await publishNip89.execute({})
     await Deno.cron("NIP-89 Announcements", {minute: {every: 1}}, async () => {
         await publishNip89.execute({})
     });
