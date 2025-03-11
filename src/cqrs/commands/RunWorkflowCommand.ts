@@ -13,7 +13,7 @@ import {
 import {NostrEvent} from '@nostrify/nostrify';
 import {ACT_DEFAULT_IMAGE, GITHUB_TOKEN} from "../../utils/env.ts";
 import {copy, readerFromStreamReader} from "jsr:@std/io";
-import {getTags, getTagValues} from "npm:@welshman/util@0.0.60";
+import {getTagValues} from "npm:@welshman/util@0.0.60";
 
 export class RunWorkflowCommand implements ICommand {
     jobRequest!: NostrEvent

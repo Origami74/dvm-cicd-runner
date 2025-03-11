@@ -16,8 +16,8 @@ jobs:
     container:
       image: node:20
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+#      - name: Checkout
+#        uses: actions/checkout@v4
       - name: Check Node.js version
         run: node -v
       - name: Upload to Blossom
