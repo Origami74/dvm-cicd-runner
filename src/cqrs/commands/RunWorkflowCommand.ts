@@ -132,6 +132,7 @@ export class RunWorkflowCommandHandler implements ICommandHandler<RunWorkflowCom
         this.logger.info(`Finished workflow`);
     }
 
+
     private async sendPartialResult(command: RunWorkflowCommand, content: string) {
         await this.publishJobFeedbackCommandHandler.execute({
             status: JobFeedBackStatus.Partial,
