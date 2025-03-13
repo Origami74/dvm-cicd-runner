@@ -102,15 +102,15 @@ export class WorkflowRunRequestEventHandler implements IEventHandler<WorkflowRun
             } catch (e) {
                 console.error("Error executing workflow", e);
 
-                const changeAmount = calculateChange(workflowStartedAt, receivedPaymentAmount)
-                const changeToken = await this.wallet.withdrawAmountAsToken(changeAmount)
+                // const changeAmount = calculateChange(workflowStartedAt, receivedPaymentAmount)
+                // const changeToken = await this.wallet.withdrawAmountAsToken(changeAmount)
 
                 await this.publishJobFeedbackCommandHandler.execute({
                     status: JobFeedBackStatus.Error,
                     jobRequest: event.nostrEvent,
                     statusExtraInfo: "An internal error occurred",
                     addressPointers: getTagValues("a", event.nostrEvent.tags),
-                    paymentChange: changeToken,
+                    // paymentChange: changeToken,
                     content: "",
                 })
             }

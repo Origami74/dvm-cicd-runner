@@ -65,17 +65,19 @@ export class PublishJobFeedbackCommandHandler implements ICommandHandler<Publish
 
         // add change
         if(command.paymentChange) {
+            const encryptedPaymentChange = await signer.nip44.encrypt(command.jobRequest.pubkey, command.paymentChange)
+            console.log("encryptedPaymentChange", encryptedPaymentChange)
             jobFeedbackEvent.tags.push(
-                ["payment_change", await signer.nip44.encrypt(command.paymentChange, command.jobRequest.pubkey)] // potential privacy issue
+                ["payment_change", encryptedPaymentChange] // potential privacy issue
             )
         }
 
-        if(command.paymentRequest){
-            const amount = (command.paymentRequest.amount ?? 0) * 1000
-            jobFeedbackEvent.tags.push(
-                ["amount", amount.toString(), command.paymentRequest.toEncodedRequest()]
-            )
-        }
+        // if(command.paymentRequest){
+        //     const amount = (command.paymentRequest.amount ?? 0) * 1000
+        //     jobFeedbackEvent.tags.push(
+        //         ["amount", amount.toString(), command.paymentRequest.toEncodedRequest()]
+        //     )
+        // }
 
         const envt = await signer.signEvent(jobFeedbackEvent);
 

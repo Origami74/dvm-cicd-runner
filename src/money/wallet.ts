@@ -45,13 +45,14 @@ export class Wallet implements IWallet {
     const receivedProofs = await this.cashuWallet.receive(token);
     const receivedAmount = getAmount(receivedProofs);
 
-    const developerSupportAmount = Math.floor(receivedAmount * DEVELOPER_SUPPORT_FACTOR)
-
-    const {keep, send: developerSupportProofs} = await this.cashuWallet.send(developerSupportAmount, receivedProofs, {includeFees: true});
-    const developerSupportToken = getEncodedTokenV4({mint: this.mint.mintUrl, proofs: developerSupportProofs});
-
-    const developerPubkeyHex = "13c5231ece335f39bd0a464646c5c9adec37abe08c883b73753bc8a288595764"
-    await this.publishDmCommandHandler.execute({pubkey: developerPubkeyHex, message: developerSupportToken})
+    const keep = receivedProofs
+    // const developerSupportAmount = Math.floor(receivedAmount * DEVELOPER_SUPPORT_FACTOR)
+    //
+    // const {keep, send: developerSupportProofs} = await this.cashuWallet.send(developerSupportAmount, receivedProofs, {includeFees: true});
+    // const developerSupportToken = getEncodedTokenV4({mint: this.mint.mintUrl, proofs: developerSupportProofs});
+    //
+    // const developerPubkeyHex = "13c5231ece335f39bd0a464646c5c9adec37abe08c883b73753bc8a288595764"
+    // await this.publishDmCommandHandler.execute({pubkey: developerPubkeyHex, message: developerSupportToken})
 
     const keepAmount = getAmount(keep);
     this.nutSack = [...this.nutSack, ...keep];

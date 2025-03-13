@@ -146,16 +146,16 @@ export class RunWorkflowCommandHandler implements ICommandHandler<RunWorkflowCom
     private async sendJobResult(command: RunWorkflowCommand, workflowStartedAt: number, jobSucceeded: boolean) {
 
         // Get the change
-        const changeAmount = calculateChange(workflowStartedAt, command.receivedPaymentAmount)
-        this.logger.info(`Returning ${changeAmount} in change to customer`);
-        const changeToken = await this.wallet.withdrawAmountAsToken(changeAmount)
+        // const changeAmount = calculateChange(workflowStartedAt, command.receivedPaymentAmount)
+        // this.logger.info(`Returning ${changeAmount} in change to customer`);
+        // const changeToken = await this.wallet.withdrawAmountAsToken(changeAmount)
 
         await this.publishJobFeedbackCommandHandler.execute({
             status: JobFeedBackStatus.Success,
             jobRequest: command.jobRequest,
             statusExtraInfo: jobSucceeded === true ? "WorkflowSuccess" : "WorkflowError",
             addressPointers: getTagValues("a", command.jobRequest.tags),
-            paymentChange: changeToken,
+            // paymentChange: changeToken,
         })
     }
 }
