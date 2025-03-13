@@ -22,7 +22,7 @@ export class PublishJobFeedbackCommand implements ICommand {
     jobRequest!: NostrEvent;
     status!: JobFeedBackStatus;
     statusExtraInfo?: string;
-    content?: string;
+    content?: string = ""
     addressPointers: string[] = [];
     paymentRequest?: PaymentRequest;
     paymentChange?: string;
@@ -44,6 +44,7 @@ export class PublishJobFeedbackCommandHandler implements ICommandHandler<Publish
         const signer = new NSecSigner(NOSTR_PRIVATE_KEY);
         const signerPubkey = await signer.getPublicKey();
 
+        // TODO: expiring partals
         const jobFeedbackEvent = {
             kind: command.jobRequest.kind + 1000,
             pubkey: signerPubkey,
