@@ -105,7 +105,7 @@ export class RunWorkflowCommandHandler implements ICommandHandler<RunWorkflowCom
 
             // send if the stream is closed, or if linecount/timer expires
             if(done || unsentLineCount >= 25 || nostrNow() - lastPartialTime > maxSecBetweenPartials){
-                await this.sendPartialResult(command, lines.join("\n"))
+                await this.sendPartialResult(command, lines.join())
                 lastSentLineIndex = lastSentLineIndex + unsentLineCount;
                 lastPartialTime = nostrNow();
                 unsentLineCount = 0

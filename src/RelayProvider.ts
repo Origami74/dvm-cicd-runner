@@ -14,6 +14,7 @@ export class RelayProvider implements IRelayProvider {
     ) {
         this.pool = new NPool({
             open(url) {
+                logger.info(`RelayProvider open, ${url}`);
                 return new NRelay1(url);
             },
             reqRouter: async (filters) => {

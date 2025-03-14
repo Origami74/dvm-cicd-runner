@@ -22,7 +22,7 @@ export class PublishJobFeedbackCommand implements ICommand {
     jobRequest!: NostrEvent;
     status!: JobFeedBackStatus;
     statusExtraInfo?: string;
-    content?: string = ""
+    content?: string
     addressPointers: string[] = [];
     paymentRequest?: PaymentRequest;
     paymentChange?: string;
@@ -31,13 +31,13 @@ export class PublishJobFeedbackCommand implements ICommand {
 @injectable()
 export class PublishJobFeedbackCommandHandler implements ICommandHandler<PublishJobFeedbackCommand> {
 
-    private relay: NRelay;
+    private relayPool: NRelay;
 
     constructor(
         @inject("Logger") private logger: pino.Logger,
         @inject(RelayProvider.name) relayProvider: IRelayProvider,
     ) {
-        this.relay = relayProvider.getDefaultPool();
+        this.relayPool = relayProvider.getDefaultPool();
     }
 
     async execute(command: PublishJobFeedbackCommand): Promise<void> {
@@ -48,7 +48,7 @@ export class PublishJobFeedbackCommandHandler implements ICommandHandler<Publish
         const jobFeedbackEvent = {
             kind: command.jobRequest.kind + 1000,
             pubkey: signerPubkey,
-            content: command.content,
+            content: command.content ?? "",
             created_at: nostrNow(),
             tags: [
                 ["s", command.status.toString(), command.statusExtraInfo],
@@ -80,8 +80,15 @@ export class PublishJobFeedbackCommandHandler implements ICommandHandler<Publish
         //     )
         // }
 
-        const envt = await signer.signEvent(jobFeedbackEvent);
+        try{
+            // TODO: fix rate-limiting
+            const envt = await signer.signEvent(jobFeedbackEvent);
 
-        await this.relay.event(envt)
+            await this.relayPool.event(envt)
+            this.logger.info(`Published JobFeedback - ${command.status.toString()}`);
+        } catch(err) {
+            console.error(err)
+        }
+
     }
 }
